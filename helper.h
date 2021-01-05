@@ -18,7 +18,7 @@ struct piece_t
 {
   int id;
   int position;
-  std::shared_ptr<sf::Sprite> sprite;
+  sf::Sprite sprite;
 };
 
 

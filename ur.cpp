@@ -1,21 +1,24 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <string>
 #include "helper.h"
 
 const float SCR_W = 800.f;
 const float SCR_H = 600.f;
 const char* TITLE = "Royal Game of Ur";
 const char* TEXTURE_PATH = "./res/ur.png";
-const int P1_PIECE = 5;
-const int P2_PIECE = 6;
+const int P1_PIECE = 6; 
+const int P2_PIECE = 5;
 const int P1_BOARD_TILES[2] = { 0, 1 };
 const int P2_BOARD_TILES[2] = { 2, 3 };
 const int STAR_TILE = 4;
 const int BLANK_TILE = 9;
 const int DIE_0 = 8;
 const int DIE_1 = 7;
-const float ZOOM = .5f;
+const float ZOOM = 0.5f;
 const float PAD = 32.f;
+const float PIECE_PAD = 8.f;
+const float TEXT_OFFSET = 8.f;
 const sf::Color BG_COLOR = sf::Color(66, 47, 81, 255);
 
 int
@@ -32,8 +35,17 @@ main()
 
   sf::Font font = loadFont();
   sf::RenderWindow window(sf::VideoMode(SCR_W, SCR_H), TITLE);
-  sf::Text p1Text("Player one text here!", font, 24);
-  p1Text.setPosition(0.f, 0.f);
+
+  sf::Text p1ScoreMsg(std::to_string(p1->score), font, 36);
+  p1ScoreMsg.setPosition(TEXT_OFFSET, SCR_H - p1ScoreMsg.getGlobalBounds().height - (TEXT_OFFSET * 2));
+  auto p1HudY = SCR_H - p1ScoreMsg.getGlobalBounds().height - TEXT_OFFSET - SPRITE_SIZE;
+  auto p1PieceOffset =  p1ScoreMsg.getGlobalBounds().width + PAD;
+
+  sf::Text p2ScoreMsg(std::to_string(p2->score), font, 36);
+  p2ScoreMsg.setPosition(TEXT_OFFSET, (SPRITE_SIZE / ZOOM / 2.f) - (p2ScoreMsg.getGlobalBounds().height / 2.f));
+  auto p2PieceOffset = p2ScoreMsg.getGlobalBounds().width + PAD;
+  auto p2HudY = TEXT_OFFSET / 2.f + SPRITE_SIZE;
+
   sf::View view(window.getDefaultView());
   view.zoom(ZOOM);
   view.setSize(view.getSize() * ZOOM);
@@ -53,9 +65,21 @@ main()
 
     window.clear(BG_COLOR);
     window.setView(view);
-    window.draw(s);
+    int p_num = 0;
+    for (auto p : *(p1->pieces))
+    {
+      p->sprite.setPosition(SPRITE_SIZE + PIECE_PAD + (p_num++ * SPRITE_SIZE), view.getSize().y - SPRITE_SIZE);
+      window.draw(p->sprite);
+    }
+    for (int i = 0; i < 7; i++)
+    {
+      sf::Sprite s((*textures)[P2_PIECE]);
+      s.setPosition(SPRITE_SIZE + PIECE_PAD + (i * SPRITE_SIZE), 0.f);
+      window.draw(s);
+    }
     window.setView(window.getDefaultView());
-    window.draw(p1Text);
+    window.draw(p1ScoreMsg);
+    window.draw(p2ScoreMsg);
     window.display();
   }
 

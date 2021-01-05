@@ -41,9 +41,8 @@ sf::Font loadFont()
 std::shared_ptr<struct piece_t>
 createPiece(int id, sf::Texture texture)
 {
-  std::shared_ptr<sf::Sprite> s = std::make_shared<sf::Sprite>();
-  s->setTexture(texture);
 
+  sf::Sprite s(texture);
   auto p = std::make_shared<struct piece_t>();
   p->id = id;
   p->sprite = s;
@@ -68,7 +67,7 @@ createPlayer(sf::Texture texture)
 bool
 clickedPiece(sf::Vector2i mousePosition, struct piece_t* piece)
 {
-  return piece->sprite->getGlobalBounds().contains(mousePosition.x,
+  return piece->sprite.getGlobalBounds().contains(mousePosition.x,
                                                    mousePosition.y);
 }
 
