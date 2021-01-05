@@ -39,7 +39,7 @@ sf::Font loadFont()
 }
 
 std::shared_ptr<struct piece_t>
-createPiece(int id, sf::Texture texture)
+createPiece(int id, sf::Texture& texture)
 {
 
   sf::Sprite s(texture);
@@ -51,7 +51,7 @@ createPiece(int id, sf::Texture texture)
 }
 
 std::shared_ptr<struct player_t>
-createPlayer(sf::Texture texture)
+createPlayer(sf::Texture& texture)
 {
   std::shared_ptr<struct player_t> player = std::make_shared<struct player_t>();
   player->score = 0;

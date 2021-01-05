@@ -35,10 +35,10 @@ loadTextures(const char* path);
 sf::Font loadFont();
 
 std::shared_ptr<struct player_t>
-createPlayer(sf::Texture pieceTexture);
+createPlayer(sf::Texture& pieceTexture);
 
 std::shared_ptr<struct piece_t>
-createPiece(int id, sf::Texture texture);
+createPiece(int id, sf::Texture& texture);
 
 bool
 clickedPiece(sf::Vector2i mousePosition, std::shared_ptr<struct piece_t> piece);
