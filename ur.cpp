@@ -13,6 +13,8 @@ const sf::Color SEMI_TRANSPARENT = sf::Color(0xff, 0x0, 0xff, 255);
 GameState state = GameState::WAITING;
 GameState prev_state = GameState::WAITING;
 
+bool mouse_left_locked = false;
+
 inline void
 change_state(GameState next)
 {
@@ -177,7 +179,9 @@ main()
         window.close();
       }
 
-      if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+      if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) &&
+          !mouse_left_locked) {
+        mouse_left_locked = true;
         // check rolling button click
         window.setView(view);
         auto mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
@@ -211,6 +215,8 @@ main()
           }
         }
         window.setView(window.getDefaultView()); // reset back to main view
+      } else if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+        mouse_left_locked = false;
       }
     }
 
