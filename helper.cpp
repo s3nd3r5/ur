@@ -144,19 +144,18 @@ createPlayer(sf::Texture& texture)
 {
   std::shared_ptr<struct player_t> player = std::make_shared<struct player_t>();
   player->score = 0;
-  player->pieces =
-    std::make_shared<std::vector<std::shared_ptr<struct piece_t>>>();
+  player->pieces = std::make_shared<std::vector<struct piece_t>>();
   for (int i = 0; i < NUM_PIECES; i++) {
-    player->pieces->push_back(createPiece(i + 1, texture));
+    player->pieces->push_back(*createPiece(i + 1, texture));
   }
 
   return player;
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<struct dice_t>>>
+std::shared_ptr<std::vector<struct dice_t>>
 createAllDice(sf::Texture& die0Texture, sf::Texture& die1Texture)
 {
-  auto dice = std::make_shared<std::vector<std::shared_ptr<struct dice_t>>>();
+  auto dice = std::make_shared<std::vector<struct dice_t>>();
 
   // create dice, even 0 odds 1
   // there are 8 dice results int total
@@ -173,18 +172,12 @@ createAllDice(sf::Texture& die0Texture, sf::Texture& die1Texture)
     if (i % 2 == 0) {
       sf::Sprite s;
       s.setTexture(die0Texture);
-      auto die = std::make_shared<struct dice_t>();
-      die->value = 0;
-      die->show = true;
-      die->sprite = s;
+      struct dice_t die = { 0, true, s };
       dice->push_back(die);
     } else {
       sf::Sprite s;
       s.setTexture(die1Texture);
-      auto die = std::make_shared<struct dice_t>();
-      die->value = 1;
-      die->show = false;
-      die->sprite = s;
+      struct dice_t die = { 1, false, s };
       dice->push_back(die);
     }
   }
@@ -192,19 +185,13 @@ createAllDice(sf::Texture& die0Texture, sf::Texture& die1Texture)
   return dice;
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<sf::Sprite>>>
+std::shared_ptr<std::vector<sf::Sprite>>
 createRollSprites(sf::Texture& t1, sf::Texture& t2)
 {
-  auto sprites = std::make_shared<std::vector<std::shared_ptr<sf::Sprite>>>();
+  auto sprites = std::make_shared<std::vector<sf::Sprite>>();
 
-  auto s1 = std::make_shared<sf::Sprite>();
-  s1->setTexture(t1);
-
-  auto s2 = std::make_shared<sf::Sprite>();
-  s2->setTexture(t2);
-
-  sprites->push_back(s1);
-  sprites->push_back(s2);
+  sprites->push_back(sf::Sprite(t1));
+  sprites->push_back(sf::Sprite(t2));
 
   return sprites;
 }
@@ -226,11 +213,10 @@ clickedPiece(sf::Vector2i mousePosition, struct piece_t* piece)
 }
 
 bool
-canMovePiece(
-  struct piece_t* piece,
-  int roll,
-  std::shared_ptr<std::vector<std::shared_ptr<struct piece_t>>> myPieces,
-  std::shared_ptr<std::vector<std::shared_ptr<struct piece_t>>> enemyPieces)
+canMovePiece(struct piece_t* piece,
+             int roll,
+             std::shared_ptr<std::vector<struct piece_t>> myPieces,
+             std::shared_ptr<std::vector<struct piece_t>> enemyPieces)
 {
   int next = piece->position + roll;
 
@@ -240,17 +226,17 @@ canMovePiece(
   }
 
   // colliding with another piece
-  for (std::shared_ptr<struct piece_t> p : (*myPieces)) {
+  for (struct piece_t& p : (*myPieces)) {
     // cannot move onto your own piece
-    if (p->id != piece->id && p->position == next) {
+    if (p.id != piece->id && p.position == next) {
       return false;
     }
   }
 
   // can't attack in safe square
-  for (std::shared_ptr<struct piece_t> p : (*enemyPieces)) {
+  for (struct piece_t& p : (*enemyPieces)) {
     // cannot move onto a protected enemy piece
-    if (next == SAFE_SPACE && p->position == SAFE_SPACE) {
+    if (next == SAFE_SPACE && p.position == SAFE_SPACE) {
       return false;
     }
   }

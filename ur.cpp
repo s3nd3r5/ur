@@ -8,7 +8,7 @@ const float PAD = 32.f;
 const float PIECE_PAD = 8.f;
 const float TEXT_OFFSET = 8.f;
 const sf::Color BG_COLOR = sf::Color(66, 47, 81, 255);
-const sf::Color SEMI_TRANSPARENT = sf::Color(255, 255, 255, 128);
+const sf::Color SEMI_TRANSPARENT = sf::Color(0xff, 0x0, 0xff, 255);
 
 GameState state = GameState::WAITING;
 GameState prev_state = GameState::WAITING;
@@ -24,6 +24,7 @@ change_state(GameState next)
 // p1 = false, p2 = true
 bool turn_tracker = true;
 int rolling_frame = 0;
+
 inline void
 next(int* i, int max)
 {
@@ -34,6 +35,7 @@ inline void
 next_turn()
 {
   turn_tracker = !turn_tracker;
+  change_state(GameState::WAITING);
 }
 
 inline bool
@@ -49,10 +51,9 @@ p2_turn()
 }
 
 inline void
-render_dice(
-  sf::RenderWindow* window,
-  std::shared_ptr<std::vector<std::shared_ptr<struct dice_t>>> dice,
-  std::shared_ptr<std::vector<std::shared_ptr<sf::Sprite>>> roll_sprites)
+render_dice(sf::RenderWindow* window,
+            std::shared_ptr<std::vector<struct dice_t>> dice,
+            std::shared_ptr<std::vector<sf::Sprite>> roll_sprites)
 {
 
   // draw dice
@@ -73,11 +74,11 @@ render_dice(
     // draw roll result
     int r = dice_r, c = dice_c;
     for (int i = 0; i < 8; i++) {
-      auto die = (*dice)[i];
-      if (die->show) {
-        die->sprite.setPosition(pos(c, r));
-        result += die->value;
-        window->draw(die->sprite);
+      auto& die = (*dice)[i];
+      if (die.show) {
+        die.sprite.setPosition(pos(c, r));
+        result += die.value;
+        window->draw(die.sprite);
 
         if (i % 2 == 0) {
           c += 1;
@@ -90,45 +91,42 @@ render_dice(
         }
       }
     }
-  }
-  else if (state == GameState::ROLLING) {
+  } else if (state == GameState::ROLLING) {
     // animate the dice. This is attached to a timer
     // which will move between rolling and placing
     int c = dice_c, r = dice_r;
     // toggle dice
     int i = 0;
-    for (auto die : (*dice)) {
-      if (!die->show) {
-        die->show = true;
+    for (auto& die : (*dice)) {
+      if (!die.show) {
+        die.show = true;
         continue;
       }
-      die->sprite.setPosition(pos(c++, r));
-      window->draw(die->sprite);
+      die.sprite.setPosition(pos(c++, r));
+      window->draw(die.sprite);
       if (i++ == 1) {
         c = dice_c;
         r += 1;
       }
-      die->show = false;
+      die.show = false;
     }
 
-  }
-  else {
+  } else {
     // draw initial values
     // draw the 0s
     int c = dice_c, r = dice_r;
     for (int i = 0; i < 8; i += 2) {
-      auto die = (*dice)[i];
-      die->sprite.setPosition(pos(c++, r));
-      window->draw(die->sprite);
+      auto& die = (*dice)[i];
+      die.sprite.setPosition(pos(c++, r));
+      window->draw(die.sprite);
       if (i == 2) {
         c = dice_c;
         r += 1;
       }
     }
     c = roll_c, r = roll_r;
-    for (auto s : (*roll_sprites)) {
-      s->setPosition(pos(c++, r));
-      window->draw(*s);
+    for (auto& s : (*roll_sprites)) {
+      s.setPosition(pos(c++, r));
     }
   }
 }
@@ -147,10 +145,10 @@ main()
   const std::shared_ptr<struct player_t> p2 =
     createPlayer((*textures)[P2_PIECE]);
 
-  const std::shared_ptr<std::vector<std::shared_ptr<sf::Sprite>>> roll_sprites =
+  const std::shared_ptr<std::vector<sf::Sprite>> roll_sprites =
     createRollSprites((*textures)[ROLL_TILES[0]], (*textures)[ROLL_TILES[1]]);
 
-  const std::shared_ptr<std::vector<std::shared_ptr<struct dice_t>>> dice =
+  const std::shared_ptr<std::vector<struct dice_t>> dice =
     createAllDice((*textures)[DIE_0], (*textures)[DIE_1]);
 
   sf::Sprite p1Score;
@@ -180,34 +178,39 @@ main()
       }
 
       if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-        if (state == GameState::WAITING) {
-          window.setView(view);
-          auto mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-          std::cout << "Pressed!: " << mPos.x << ", " << mPos.y << std::endl;
-          for (auto s : (*roll_sprites)) {
-            // zoom sprite bounds
-            if (s->getGlobalBounds().contains(mPos)) {
+        // check rolling button click
+        window.setView(view);
+        auto mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+        for (auto& s : (*roll_sprites)) {
+          // zoom sprite bounds
+          if (s.getGlobalBounds().contains(mPos)) {
+            if (state == GameState::WAITING) {
+              std::cout << "Roll!" << std::endl;
               // setup for rolling
               change_state(GameState::ROLLING);
-
-              for (auto s : (*roll_sprites)) {
-                s->setColor(SEMI_TRANSPARENT);
+              for (auto& rs : (*roll_sprites)) {
+                rs.setColor(SEMI_TRANSPARENT);
               }
 
-              (*dice)[0]->show = false;
-              (*dice)[1]->show = true;
-              (*dice)[2]->show = true;
-              (*dice)[3]->show = false;
-              (*dice)[4]->show = true;
-              (*dice)[5]->show = false;
-              (*dice)[6]->show = false;
-              (*dice)[7]->show = true;
+              (*dice)[0].show = false;
+              (*dice)[1].show = true;
+              (*dice)[2].show = true;
+              (*dice)[3].show = false;
+              (*dice)[4].show = true;
+              (*dice)[5].show = false;
+              (*dice)[6].show = false;
+              (*dice)[7].show = true;
               break;
+            } else if (state == GameState::ROLLING) {
+              std::cout << "Change turn" << std::endl;
+              for (auto& rs : (*roll_sprites)) {
+                rs.setColor(sf::Color::White);
+              }
+              next_turn();
             }
           }
-
-          window.setView(window.getDefaultView());
         }
+        window.setView(window.getDefaultView()); // reset back to main view
       }
     }
 
@@ -220,18 +223,21 @@ main()
 
     // draw unused pieces
     int p_num = (SPRITE_COLS / 2) - (p1->pieces->size() / 2) - 1;
-    for (auto p : *(p1->pieces)) {
-      p->sprite.setPosition(pos(p_num++, SPRITE_ROWS - 1));
-      window.draw(p->sprite);
+    for (auto& p : *(p1->pieces)) {
+      p.sprite.setPosition(pos(p_num++, SPRITE_ROWS - 1));
+      window.draw(p.sprite);
     }
 
     p_num = (SPRITE_COLS / 2) - (p2->pieces->size() / 2) - 1;
-    for (auto p : *(p2->pieces)) {
-      p->sprite.setPosition(pos(p_num++, 0));
-      window.draw(p->sprite);
+    for (auto& p : *(p2->pieces)) {
+      p.sprite.setPosition(pos(p_num++, 0));
+      window.draw(p.sprite);
     }
 
     render_dice(&window, dice, roll_sprites);
+    for (auto& s : (*roll_sprites)) {
+      window.draw(s);
+    }
 
     window.draw(p1Score);
     window.draw(p2Score);

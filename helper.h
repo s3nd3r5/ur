@@ -49,7 +49,7 @@ struct piece_t
 struct player_t
 {
   int score;
-  std::shared_ptr<std::vector<std::shared_ptr<struct piece_t>>> pieces;
+  std::shared_ptr<std::vector<struct piece_t>> pieces;
 };
 
 struct dice_t
@@ -74,10 +74,10 @@ createPlayer(sf::Texture& pieceTexture);
 std::shared_ptr<struct piece_t>
 createPiece(int id, sf::Texture& texture);
 
-std::shared_ptr<std::vector<std::shared_ptr<struct dice_t>>>
+std::shared_ptr<std::vector<struct dice_t>>
 createAllDice(sf::Texture& die0Texture, sf::Texture& die1Texture);
 
-std::shared_ptr<std::vector<std::shared_ptr<sf::Sprite>>>
+std::shared_ptr<std::vector<sf::Sprite>>
 createRollSprites(sf::Texture& t1, sf::Texture& t2);
 
 void makeNum(
@@ -92,8 +92,8 @@ bool
 canMovePiece(
     std::shared_ptr<struct piece_t> piece,
     int roll,
-    std::shared_ptr<std::vector<std::shared_ptr<struct piece_t>>> myPieces,
-    std::shared_ptr<std::vector<std::shared_ptr<struct piece_t>>> enemyPieces);
+    std::shared_ptr<std::vector<struct piece_t>> myPieces,
+    std::shared_ptr<std::vector<struct piece_t>> enemyPieces);
 
 std::vector<int> 
 getLegalMoves(
