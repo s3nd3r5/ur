@@ -9,14 +9,14 @@
 
 static const unsigned int SPRITE_SIZE = 16;
 static const unsigned int NUM_PIECES = 7;
-static const unsigned int SAFE_SPACE = 7; // 0-indexed
+static const unsigned int SAFE_SPACE = 7;  // 0-indexed
 static const unsigned int EXIT_SPACE = 14; // final space + 1
 static const float ZOOM = 0.5f;
 static const float SPRITE_ROWS = 9.f;
 static const float SPRITE_COLS = 14.f;
 static const float SCR_W = SPRITE_SIZE / ZOOM * SPRITE_COLS / ZOOM;
 static const float SCR_H = SPRITE_SIZE / ZOOM * SPRITE_ROWS / ZOOM;
-static const int P1_PIECE = 6; 
+static const int P1_PIECE = 6;
 static const int P2_PIECE = 5;
 static const int P1_BOARD_TILES[2] = { 0, 1 };
 static const int P2_BOARD_TILES[2] = { 2, 3 };
@@ -45,7 +45,6 @@ struct piece_t
   sf::Sprite sprite;
 };
 
-
 struct player_t
 {
   int score;
@@ -59,14 +58,14 @@ struct dice_t
   sf::Sprite sprite;
 };
 
-
 std::shared_ptr<std::vector<sf::Texture>>
 loadTextures(const char* path);
 
 std::shared_ptr<std::vector<sf::Sprite>>
 createBoard(std::shared_ptr<std::vector<sf::Texture>> textures);
 
-sf::Font loadFont();
+sf::Font
+loadFont();
 
 std::shared_ptr<struct player_t>
 createPlayer(sf::Texture& pieceTexture);
@@ -80,27 +79,24 @@ createAllDice(sf::Texture& die0Texture, sf::Texture& die1Texture);
 std::shared_ptr<std::vector<sf::Sprite>>
 createRollSprites(sf::Texture& t1, sf::Texture& t2);
 
-void makeNum(
-    sf::Sprite* sprite_ptr,
-    int num,
-    std::shared_ptr<std::vector<sf::Texture>> textures);
+void
+makeNum(sf::Sprite* sprite_ptr,
+        int num,
+        std::shared_ptr<std::vector<sf::Texture>> textures);
 
 bool
 clickedPiece(sf::Vector2i mousePosition, std::shared_ptr<struct piece_t> piece);
 
 bool
-canMovePiece(
-    std::shared_ptr<struct piece_t> piece,
-    int roll,
-    std::shared_ptr<std::vector<struct piece_t>> myPieces,
-    std::shared_ptr<std::vector<struct piece_t>> enemyPieces);
+canMovePiece(std::shared_ptr<struct piece_t> piece,
+             int roll,
+             std::shared_ptr<std::vector<struct piece_t>> myPieces,
+             std::shared_ptr<std::vector<struct piece_t>> enemyPieces);
 
-std::vector<int> 
-getLegalMoves(
-    std::shared_ptr<struct player_t> activePlayer,
-    std::shared_ptr<struct player_t> opponent);
+std::vector<int>
+getLegalMoves(std::shared_ptr<struct player_t> activePlayer,
+              std::shared_ptr<struct player_t> opponent);
 
 sf::Vector2f
 pos(float c, float r);
 #endif
-

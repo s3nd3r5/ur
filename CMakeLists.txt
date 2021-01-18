@@ -7,7 +7,7 @@ set(EXECUTABLE_NAME ur)
 set(SFML_LIBRARIES sfml-system sfml-window sfml-graphics)
 find_package(SFML 2.5 REQUIRED COMPONENTS system window graphics)
 
-add_executable(${EXECUTABLE_NAME} ur.cpp helper.h helper.cpp)
+add_executable(${EXECUTABLE_NAME} ur.cpp helper.hpp helper.cpp)
 target_link_libraries(${EXECUTABLE_NAME} ${SFML_LIBRARIES})
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/res DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
