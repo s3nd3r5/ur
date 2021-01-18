@@ -8,7 +8,7 @@ const float PAD = 32.f;
 const float PIECE_PAD = 8.f;
 const float TEXT_OFFSET = 8.f;
 const sf::Color BG_COLOR = sf::Color(66, 47, 81, 255);
-const sf::Color GREY = sf::Color(255, 255, 255, 128);
+const sf::Color SEMI_TRANSPARENT = sf::Color(255, 255, 255, 128);
 
 GameState state = GameState::WAITING;
 GameState prev_state = GameState::WAITING;
@@ -23,6 +23,12 @@ change_state(GameState next)
 
 // p1 = false, p2 = true
 bool turn_tracker = true;
+int rolling_frame = 0;
+inline void
+next(int* i, int max)
+{
+  (*i) = ((*i) + 1) % max;
+}
 
 inline void
 next_turn()
@@ -45,7 +51,7 @@ p2_turn()
 inline void
 render_dice(
   sf::RenderWindow* window,
-  std::shared_ptr<std::vector<struct dice_t>> dice,
+  std::shared_ptr<std::vector<std::shared_ptr<struct dice_t>>> dice,
   std::shared_ptr<std::vector<std::shared_ptr<sf::Sprite>>> roll_sprites)
 {
 
@@ -68,10 +74,10 @@ render_dice(
     int r = dice_r, c = dice_c;
     for (int i = 0; i < 8; i++) {
       auto die = (*dice)[i];
-      if (die.show) {
-        die.sprite.setPosition(pos(c, r));
-        result += die.value;
-        window->draw(die.sprite);
+      if (die->show) {
+        die->sprite.setPosition(pos(c, r));
+        result += die->value;
+        window->draw(die->sprite);
 
         if (i % 2 == 0) {
           c += 1;
@@ -85,29 +91,41 @@ render_dice(
       }
     }
   }
-  /*
-  else if (state == GameState::ROLLING)
-  {
+  else if (state == GameState::ROLLING) {
     // animate the dice. This is attached to a timer
     // which will move between rolling and placing
+    int c = dice_c, r = dice_r;
+    // toggle dice
+    int i = 0;
+    for (auto die : (*dice)) {
+      if (!die->show) {
+        die->show = true;
+        continue;
+      }
+      die->sprite.setPosition(pos(c++, r));
+      window->draw(die->sprite);
+      if (i++ == 1) {
+        c = dice_c;
+        r += 1;
+      }
+      die->show = false;
+    }
+
   }
-  */
   else {
     // draw initial values
     // draw the 0s
     int c = dice_c, r = dice_r;
     for (int i = 0; i < 8; i += 2) {
       auto die = (*dice)[i];
-      die.sprite.setPosition(pos(c++, r));
-      window->draw(die.sprite);
+      die->sprite.setPosition(pos(c++, r));
+      window->draw(die->sprite);
       if (i == 2) {
         c = dice_c;
         r += 1;
       }
     }
-    // draw roll text
-    c = roll_c;
-    r = roll_r;
+    c = roll_c, r = roll_r;
     for (auto s : (*roll_sprites)) {
       s->setPosition(pos(c++, r));
       window->draw(*s);
@@ -132,7 +150,7 @@ main()
   const std::shared_ptr<std::vector<std::shared_ptr<sf::Sprite>>> roll_sprites =
     createRollSprites((*textures)[ROLL_TILES[0]], (*textures)[ROLL_TILES[1]]);
 
-  const std::shared_ptr<std::vector<struct dice_t>> dice =
+  const std::shared_ptr<std::vector<std::shared_ptr<struct dice_t>>> dice =
     createAllDice((*textures)[DIE_0], (*textures)[DIE_1]);
 
   sf::Sprite p1Score;
@@ -169,13 +187,22 @@ main()
           for (auto s : (*roll_sprites)) {
             // zoom sprite bounds
             if (s->getGlobalBounds().contains(mPos)) {
+              // setup for rolling
               change_state(GameState::ROLLING);
+
+              for (auto s : (*roll_sprites)) {
+                s->setColor(SEMI_TRANSPARENT);
+              }
+
+              (*dice)[0]->show = false;
+              (*dice)[1]->show = true;
+              (*dice)[2]->show = true;
+              (*dice)[3]->show = false;
+              (*dice)[4]->show = true;
+              (*dice)[5]->show = false;
+              (*dice)[6]->show = false;
+              (*dice)[7]->show = true;
               break;
-            }
-          }
-          if (state == GameState::ROLLING) {
-            for (auto s : (*roll_sprites)) {
-              s->setColor(GREY);
             }
           }
 

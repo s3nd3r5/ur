@@ -74,7 +74,7 @@ createPlayer(sf::Texture& pieceTexture);
 std::shared_ptr<struct piece_t>
 createPiece(int id, sf::Texture& texture);
 
-std::shared_ptr<std::vector<struct dice_t>>
+std::shared_ptr<std::vector<std::shared_ptr<struct dice_t>>>
 createAllDice(sf::Texture& die0Texture, sf::Texture& die1Texture);
 
 std::shared_ptr<std::vector<std::shared_ptr<sf::Sprite>>>

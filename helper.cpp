@@ -153,10 +153,10 @@ createPlayer(sf::Texture& texture)
   return player;
 }
 
-std::shared_ptr<std::vector<struct dice_t>>
+std::shared_ptr<std::vector<std::shared_ptr<struct dice_t>>>
 createAllDice(sf::Texture& die0Texture, sf::Texture& die1Texture)
 {
-  auto dice = std::make_shared<std::vector<struct dice_t>>();
+  auto dice = std::make_shared<std::vector<std::shared_ptr<struct dice_t>>>();
 
   // create dice, even 0 odds 1
   // there are 8 dice results int total
@@ -173,12 +173,18 @@ createAllDice(sf::Texture& die0Texture, sf::Texture& die1Texture)
     if (i % 2 == 0) {
       sf::Sprite s;
       s.setTexture(die0Texture);
-      struct dice_t die = { 0, true, s };
+      auto die = std::make_shared<struct dice_t>();
+      die->value = 0;
+      die->show = true;
+      die->sprite = s;
       dice->push_back(die);
     } else {
       sf::Sprite s;
       s.setTexture(die1Texture);
-      struct dice_t die = { 1, false, s };
+      auto die = std::make_shared<struct dice_t>();
+      die->value = 1;
+      die->show = false;
+      die->sprite = s;
       dice->push_back(die);
     }
   }
