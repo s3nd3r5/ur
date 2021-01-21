@@ -1,5 +1,7 @@
 #include "helper.hpp"
+#include "timedLatch.hpp"
 #include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 #include <iostream>
 #include <string>
 
@@ -8,7 +10,7 @@ const float PAD = 32.f;
 const float PIECE_PAD = 8.f;
 const float TEXT_OFFSET = 8.f;
 const sf::Color BG_COLOR = sf::Color(66, 47, 81, 255);
-const sf::Color SEMI_TRANSPARENT = sf::Color(0xff, 0x0, 0xff, 255);
+const sf::Color SEMI_TRANSPARENT = sf::Color(255, 255, 255, 128);
 
 GameState state = GameState::WAITING;
 GameState prev_state = GameState::WAITING;
@@ -170,6 +172,8 @@ main()
   view.setSize(view.getSize() * ZOOM);
   view.setCenter(view.getSize() / 2.f);
 
+  ur::TimedLatch rolling_animation_timer(sf::seconds(3));
+
   while (window.isOpen()) {
 
     sf::Event event;
@@ -191,6 +195,7 @@ main()
             if (state == GameState::WAITING) {
               std::cout << "Roll!" << std::endl;
               // setup for rolling
+              rolling_animation_timer.start();
               change_state(GameState::ROLLING);
               for (auto& rs : (*roll_sprites)) {
                 rs.setColor(SEMI_TRANSPARENT);
@@ -205,12 +210,6 @@ main()
               (*dice)[6].show = false;
               (*dice)[7].show = true;
               break;
-            } else if (state == GameState::ROLLING) {
-              std::cout << "Change turn" << std::endl;
-              for (auto& rs : (*roll_sprites)) {
-                rs.setColor(sf::Color::White);
-              }
-              next_turn();
             }
           }
         }
@@ -249,6 +248,15 @@ main()
     window.draw(p2Score);
     window.setView(window.getDefaultView());
     window.display();
+
+    // test timer logic - change turn after timer completes
+    if (rolling_animation_timer.is_completed()) {
+      rolling_animation_timer.reset();
+      for (auto& rs : (*roll_sprites)) {
+        rs.setColor(sf::Color::White);
+      }
+      next_turn();
+    }
   }
 
   return EXIT_SUCCESS;
