@@ -1,4 +1,5 @@
 #include "helper.hpp"
+#include "random.hpp"
 #include "timedLatch.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
@@ -12,6 +13,7 @@ const float TEXT_OFFSET = 8.f;
 const sf::Color BG_COLOR = sf::Color(66, 47, 81, 255);
 const sf::Color SEMI_TRANSPARENT = sf::Color(255, 255, 255, 128);
 
+ur::Random dice_rand(0, 1); // 50/50 random
 GameState state = GameState::WAITING;
 GameState prev_state = GameState::WAITING;
 
@@ -57,7 +59,8 @@ p2_turn()
 inline void
 render_dice(sf::RenderWindow* window,
             std::shared_ptr<std::vector<struct dice_t>> dice,
-            std::shared_ptr<std::vector<sf::Sprite>> roll_sprites)
+            std::shared_ptr<std::vector<sf::Sprite>> roll_sprites,
+            ur::TimedLatch* animation_frame_timer)
 {
 
   // draw dice
@@ -96,23 +99,35 @@ render_dice(sf::RenderWindow* window,
       }
     }
   } else if (state == GameState::ROLLING) {
-    // animate the dice. This is attached to a timer
-    // which will move between rolling and placing
+    // if completed update dice sprites
+    if (animation_frame_timer->is_completed()) {
+      // iterate over each pair of dice sprites
+      // and show whichever matches the roll
+      for (int i = 0; i < 8; i+=2)
+      {
+        int result = dice_rand.next();
+        (*dice)[i].show = result == 0;
+        (*dice)[i+1].show = result == 1;
+      }
+    }
     int c = dice_c, r = dice_r;
-    // toggle dice
     int i = 0;
-    for (auto& die : (*dice)) {
-      if (!die.show) {
-        die.show = true;
-        continue;
+    for (auto& die : (*dice))
+    {
+      if (die.show) {
+        die.sprite.setPosition(pos(c++, r));
+        window->draw(die.sprite);
+        if (++i == 2) {
+          c = dice_c;
+          r += 1;
+        }
       }
-      die.sprite.setPosition(pos(c++, r));
-      window->draw(die.sprite);
-      if (i++ == 1) {
-        c = dice_c;
-        r += 1;
-      }
-      die.show = false;
+    }
+    // make sure we're started!
+    // note - this should come after the completed check otherwise we'll always restart it
+    if (!animation_frame_timer->is_running())
+    {
+      animation_frame_timer->start();
     }
 
   } else {
@@ -173,6 +188,7 @@ main()
   view.setCenter(view.getSize() / 2.f);
 
   ur::TimedLatch rolling_animation_timer(sf::seconds(3));
+  ur::TimedLatch rolling_animation_frame_pause_timer(sf::milliseconds(100));
 
   while (window.isOpen()) {
 
@@ -200,15 +216,10 @@ main()
               for (auto& rs : (*roll_sprites)) {
                 rs.setColor(SEMI_TRANSPARENT);
               }
-
-              (*dice)[0].show = false;
-              (*dice)[1].show = true;
-              (*dice)[2].show = true;
-              (*dice)[3].show = false;
-              (*dice)[4].show = true;
-              (*dice)[5].show = false;
-              (*dice)[6].show = false;
-              (*dice)[7].show = true;
+              for (int i = 0; i < 8; i++)
+              {
+                (*dice)[i].show = i % 2 == 0; // only show the 0s
+              }
               break;
             }
           }
@@ -239,7 +250,7 @@ main()
       window.draw(p.sprite);
     }
 
-    render_dice(&window, dice, roll_sprites);
+    render_dice(&window, dice, roll_sprites, &rolling_animation_frame_pause_timer);
     for (auto& s : (*roll_sprites)) {
       window.draw(s);
     }
