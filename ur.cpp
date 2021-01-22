@@ -17,6 +17,7 @@ ur::Random dice_rand(0, 1); // 50/50 random
 GameState state = GameState::WAITING;
 GameState prev_state = GameState::WAITING;
 struct piece_t* grabbed_piece = nullptr;
+sf::Vector2f grabbed_piece_origin;
 
 int turn_roll = 0;
 bool mouse_left_locked = false;
@@ -253,6 +254,7 @@ main()
           for (auto& p : (*pieces)) {
             if (p.sprite.getGlobalBounds().contains(mPos)) {
               grabbed_piece = &p;
+              grabbed_piece_origin = grabbed_piece->sprite.getPosition();
               break;
             }
           }
@@ -261,12 +263,31 @@ main()
       } else if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
         mouse_left_locked = false;
         if (state == GameState::PLACING && grabbed_piece != nullptr) {
-          next_turn();
-          turn_roll = 0;
-          grabbed_piece = nullptr;
-          for (auto& s : (*roll_sprites)) {
-            s.setColor(sf::Color::White);
+          // did the piece drop into place
+          bool in_place = false;
+          sf::FloatRect intersect;
+          for (auto& s : *(board)) {
+            if (s.getGlobalBounds().intersects(
+                  grabbed_piece->sprite.getGlobalBounds(), intersect)) {
+              if (intersect.width > SPRITE_SIZE / 2 &&
+                  intersect.height > SPRITE_SIZE / 2) {
+                grabbed_piece->sprite.setPosition(s.getPosition());
+                in_place = true;
+                break;
+              }
+            }
           }
+
+          if (in_place) {
+            next_turn();
+            turn_roll = 0;
+            for (auto& s : (*roll_sprites)) {
+              s.setColor(sf::Color::White);
+            }
+          } else {
+            grabbed_piece->sprite.setPosition(grabbed_piece_origin);
+          }
+          grabbed_piece = nullptr;
         }
       }
     }
@@ -288,7 +309,6 @@ main()
     for (auto& p : *(p1->pieces)) {
       window.draw(p.sprite);
     }
-
     for (auto& p : *(p2->pieces)) {
       window.draw(p.sprite);
     }
