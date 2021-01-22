@@ -29,10 +29,10 @@ loadTextures(const char* path)
 
 // increment through the textures
 inline int
-next(int* p)
+next(int* p, int max)
 {
   int i = *p;
-  (*p) = (i + 1) % 2;
+  (*p) = (i + 1) % max;
   return i;
 }
 
@@ -41,7 +41,7 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
 {
   auto sprites = std::make_shared<std::vector<sf::Sprite>>();
   sf::Texture& star_texture = (*textures)[STAR_TILE];
-  sf::Texture& blank_texture = (*textures)[BLANK_TILE];
+  int blank_idx = 0;
   int sp_idx = 0;
   // p1 pieces
   // p1 star
@@ -53,7 +53,7 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
   }
   // p1 start
   for (int i = 0; i < 3; i++) {
-    sf::Texture& t = (*textures)[P1_BOARD_TILES[next(&sp_idx)]];
+    sf::Texture& t = (*textures)[P1_BOARD_TILES[next(&sp_idx, 2)]];
     sf::Sprite s;
     s.setTexture(t);
     s.setPosition(pos(4 + i, 5));
@@ -66,7 +66,7 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
     end_star.setPosition(pos(9, 5));
     sprites->push_back(end_star);
 
-    sf::Texture& t = (*textures)[P1_BOARD_TILES[next(&sp_idx)]];
+    sf::Texture& t = (*textures)[P1_BOARD_TILES[next(&sp_idx, 2)]];
     sf::Sprite s;
     s.setTexture(t);
     s.setPosition(pos(10, 5));
@@ -78,7 +78,8 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
     if (i == 3) {
       s.setTexture(star_texture);
     } else {
-      s.setTexture(blank_texture);
+      sf::Texture& t = (*textures)[BLANK_TILES[next(&blank_idx, 3)]];
+      s.setTexture(t);
     }
     s.setPosition(pos(3 + i, 4));
     sprites->push_back(s);
@@ -93,7 +94,7 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
   }
   // p2 start
   for (int i = 0; i < 3; i++) {
-    sf::Texture& t = (*textures)[P2_BOARD_TILES[next(&sp_idx)]];
+    sf::Texture& t = (*textures)[P2_BOARD_TILES[next(&sp_idx, 2)]];
     sf::Sprite s;
     s.setTexture(t);
     s.setPosition(pos(4 + i, 3));
@@ -106,7 +107,7 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
     end_star.setPosition(pos(9, 3));
     sprites->push_back(end_star);
 
-    sf::Texture& t = (*textures)[P2_BOARD_TILES[next(&sp_idx)]];
+    sf::Texture& t = (*textures)[P2_BOARD_TILES[next(&sp_idx, 2)]];
     sf::Sprite s;
     s.setTexture(t);
     s.setPosition(pos(10, 3));
