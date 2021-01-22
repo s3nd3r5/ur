@@ -6,6 +6,7 @@ TimedLatch::TimedLatch(sf::Time duration)
 {
   this->duration = duration;
   this->clock = sf::Clock();
+  this->isStarted = false;
 };
 
 void
