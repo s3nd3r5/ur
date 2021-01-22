@@ -16,7 +16,9 @@ const sf::Color SEMI_TRANSPARENT = sf::Color(255, 255, 255, 128);
 ur::Random dice_rand(0, 1); // 50/50 random
 GameState state = GameState::WAITING;
 GameState prev_state = GameState::WAITING;
+struct piece_t* grabbed_piece = nullptr;
 
+int turn_roll = 0;
 bool mouse_left_locked = false;
 
 inline void
@@ -28,7 +30,7 @@ change_state(GameState next)
 }
 
 // p1 = false, p2 = true
-bool turn_tracker = true;
+bool turn_tracker = false;
 int rolling_frame = 0;
 
 inline void
@@ -60,8 +62,27 @@ inline void
 render_dice(sf::RenderWindow* window,
             std::shared_ptr<std::vector<struct dice_t>> dice,
             std::shared_ptr<std::vector<sf::Sprite>> roll_sprites,
+            std::shared_ptr<std::vector<sf::Texture>> textures,
+            sf::Sprite* roll_result,
+            ur::TimedLatch* animation_timer,
             ur::TimedLatch* animation_frame_timer)
 {
+
+  if (animation_timer->is_completed()) {
+    animation_timer->reset();
+    change_state(GameState::PLACING);
+    int rolls[4] = {
+      dice_rand.next(), dice_rand.next(), dice_rand.next(), dice_rand.next()
+    };
+    // draw roll result
+    for (int i = 0; i < 8; i++) {
+      auto& die = (*dice)[i];
+      die.show = die.value == rolls[i / 2];
+    }
+    // set roll result
+    for (int r : rolls)
+      turn_roll += r;
+  }
 
   // draw dice
   int dice_r, dice_c, roll_r, roll_c;
@@ -76,57 +97,26 @@ render_dice(sf::RenderWindow* window,
     roll_r = dice_r - 1;
     roll_c = dice_c;
   }
-  if (state == GameState::PLACING) {
-    int result = 0;
-    // draw roll result
-    int r = dice_r, c = dice_c;
-    for (int i = 0; i < 8; i++) {
-      auto& die = (*dice)[i];
-      if (die.show) {
-        die.sprite.setPosition(pos(c, r));
-        result += die.value;
-        window->draw(die.sprite);
 
-        if (i % 2 == 0) {
-          c += 1;
-          // reset if we've already bumped it once
-          if (c % 2 == 0) {
-            c = dice_c;
-          }
-        } else {
-          r += 1;
-        }
-      }
-    }
+  if (state == GameState::PLACING) {
+    // draw roll text
+    makeNum(roll_result, turn_roll, textures);
+    window->draw(*roll_result);
   } else if (state == GameState::ROLLING) {
     // if completed update dice sprites
     if (animation_frame_timer->is_completed()) {
       // iterate over each pair of dice sprites
       // and show whichever matches the roll
-      for (int i = 0; i < 8; i+=2)
-      {
-        int result = dice_rand.next();
+      int result = dice_rand.next();
+      for (int i = 0; i < 8; i += 2) {
         (*dice)[i].show = result == 0;
-        (*dice)[i+1].show = result == 1;
-      }
-    }
-    int c = dice_c, r = dice_r;
-    int i = 0;
-    for (auto& die : (*dice))
-    {
-      if (die.show) {
-        die.sprite.setPosition(pos(c++, r));
-        window->draw(die.sprite);
-        if (++i == 2) {
-          c = dice_c;
-          r += 1;
-        }
+        (*dice)[i + 1].show = result == 1;
       }
     }
     // make sure we're started!
-    // note - this should come after the completed check otherwise we'll always restart it
-    if (!animation_frame_timer->is_running())
-    {
+    // note - this should come after the completed check otherwise we'll always
+    // restart it
+    if (!animation_frame_timer->is_running()) {
       animation_frame_timer->start();
     }
 
@@ -143,10 +133,23 @@ render_dice(sf::RenderWindow* window,
         r += 1;
       }
     }
-    c = roll_c, r = roll_r;
-    for (auto& s : (*roll_sprites)) {
-      s.setPosition(pos(c++, r));
+  }
+
+  int c = dice_c, r = dice_r;
+  int i = 0;
+  for (auto& die : (*dice)) {
+    if (die.show) {
+      die.sprite.setPosition(pos(c++, r));
+      window->draw(die.sprite);
+      if (++i == 2) {
+        c = dice_c;
+        r += 1;
+      }
     }
+  }
+  c = roll_c, r = roll_r;
+  for (auto& s : (*roll_sprites)) {
+    s.setPosition(pos(c++, r));
   }
 }
 
@@ -178,6 +181,20 @@ main()
   p2Score.setPosition(pos(0, 0));
   makeNum(&p2Score, 0, textures);
 
+  // init piece positions
+  int p_num = (SPRITE_COLS / 2) - (p1->pieces->size() / 2) - 1;
+  for (auto& p : *(p1->pieces)) {
+    p.sprite.setPosition(pos(p_num++, SPRITE_ROWS - 1));
+  }
+
+  p_num = (SPRITE_COLS / 2) - (p2->pieces->size() / 2) - 1;
+  for (auto& p : *(p2->pieces)) {
+    p.sprite.setPosition(pos(p_num++, 0));
+  }
+
+  sf::Sprite roll_result;
+  roll_result.setPosition(pos(12, 4));
+
   sf::RenderWindow window(sf::VideoMode(SCR_W, SCR_H), TITLE);
   window.setFramerateLimit(60);
   window.setVerticalSyncEnabled(true);
@@ -205,10 +222,12 @@ main()
         // check rolling button click
         window.setView(view);
         auto mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-        for (auto& s : (*roll_sprites)) {
-          // zoom sprite bounds
-          if (s.getGlobalBounds().contains(mPos)) {
-            if (state == GameState::WAITING) {
+
+        // was roll clicked
+        if (state == GameState::WAITING) {
+          for (auto& s : (*roll_sprites)) {
+            // zoom sprite bounds
+            if (s.getGlobalBounds().contains(mPos)) {
               std::cout << "Roll!" << std::endl;
               // setup for rolling
               rolling_animation_timer.start();
@@ -216,10 +235,24 @@ main()
               for (auto& rs : (*roll_sprites)) {
                 rs.setColor(SEMI_TRANSPARENT);
               }
-              for (int i = 0; i < 8; i++)
-              {
+              for (int i = 0; i < 8; i++) {
                 (*dice)[i].show = i % 2 == 0; // only show the 0s
               }
+              break;
+            }
+          }
+        } else if (state == GameState::PLACING) {
+          // is a piece being clicked
+          std::shared_ptr<std::vector<struct piece_t>> pieces;
+          if (p1_turn()) {
+            pieces = p1->pieces;
+          } else {
+            pieces = p2->pieces;
+          }
+
+          for (auto& p : (*pieces)) {
+            if (p.sprite.getGlobalBounds().contains(mPos)) {
+              grabbed_piece = &p;
               break;
             }
           }
@@ -227,6 +260,14 @@ main()
         window.setView(window.getDefaultView()); // reset back to main view
       } else if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
         mouse_left_locked = false;
+        if (state == GameState::PLACING && grabbed_piece != nullptr) {
+          next_turn();
+          turn_roll = 0;
+          grabbed_piece = nullptr;
+          for (auto& s : (*roll_sprites)) {
+            s.setColor(sf::Color::White);
+          }
+        }
       }
     }
 
@@ -237,20 +278,28 @@ main()
       window.draw(s);
     }
 
+    auto mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+    if (grabbed_piece != nullptr) {
+      float x = mPos.x - (grabbed_piece->sprite.getGlobalBounds().width / 2);
+      float y = mPos.y - (grabbed_piece->sprite.getGlobalBounds().height / 2);
+      grabbed_piece->sprite.setPosition(x, y);
+    }
     // draw unused pieces
-    int p_num = (SPRITE_COLS / 2) - (p1->pieces->size() / 2) - 1;
     for (auto& p : *(p1->pieces)) {
-      p.sprite.setPosition(pos(p_num++, SPRITE_ROWS - 1));
       window.draw(p.sprite);
     }
 
-    p_num = (SPRITE_COLS / 2) - (p2->pieces->size() / 2) - 1;
     for (auto& p : *(p2->pieces)) {
-      p.sprite.setPosition(pos(p_num++, 0));
       window.draw(p.sprite);
     }
 
-    render_dice(&window, dice, roll_sprites, &rolling_animation_frame_pause_timer);
+    render_dice(&window,
+                dice,
+                roll_sprites,
+                textures,
+                &roll_result,
+                &rolling_animation_timer,
+                &rolling_animation_frame_pause_timer);
     for (auto& s : (*roll_sprites)) {
       window.draw(s);
     }
@@ -259,15 +308,6 @@ main()
     window.draw(p2Score);
     window.setView(window.getDefaultView());
     window.display();
-
-    // test timer logic - change turn after timer completes
-    if (rolling_animation_timer.is_completed()) {
-      rolling_animation_timer.reset();
-      for (auto& rs : (*roll_sprites)) {
-        rs.setColor(sf::Color::White);
-      }
-      next_turn();
-    }
   }
 
   return EXIT_SUCCESS;
