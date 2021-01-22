@@ -108,8 +108,8 @@ render_dice(sf::RenderWindow* window,
     if (animation_frame_timer->is_completed()) {
       // iterate over each pair of dice sprites
       // and show whichever matches the roll
-      int result = dice_rand.next();
       for (int i = 0; i < 8; i += 2) {
+        int result = dice_rand.next();
         (*dice)[i].show = result == 0;
         (*dice)[i + 1].show = result == 1;
       }
