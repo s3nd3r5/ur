@@ -61,6 +61,11 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
   }
   // p1 end
   {
+    sf::Sprite goal;
+    goal.setTexture((*textures)[P1_END]);
+    goal.setPosition(pos(8, 5));
+    sprites->push_back(goal);
+
     sf::Sprite end_star;
     end_star.setTexture(star_texture);
     end_star.setPosition(pos(9, 5));
@@ -102,16 +107,21 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
   }
   // p2 end
   {
+    sf::Sprite goal;
+    goal.setTexture((*textures)[P2_END]);
+    goal.setPosition(pos(8, 3));
+    sprites->push_back(goal);
+
     sf::Sprite end_star;
     end_star.setTexture(star_texture);
     end_star.setPosition(pos(9, 3));
     sprites->push_back(end_star);
 
     sf::Texture& t = (*textures)[P2_BOARD_TILES[next(&sp_idx, 2)]];
-    sf::Sprite s;
-    s.setTexture(t);
-    s.setPosition(pos(10, 3));
-    sprites->push_back(s);
+    sf::Sprite end_tile;
+    end_tile.setTexture(t);
+    end_tile.setPosition(pos(10, 3));
+    sprites->push_back(end_tile);
   }
 
   return sprites;
