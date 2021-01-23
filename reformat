@@ -1,1 +1,1 @@
-clang-format -i --style=Mozilla *.*pp
+clang-format -i --style=Mozilla src/*.*pp
