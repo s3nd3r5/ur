@@ -16,6 +16,9 @@ static const float SPRITE_ROWS = 9.f;
 static const float SPRITE_COLS = 14.f;
 static const float SCR_W = SPRITE_SIZE / ZOOM * SPRITE_COLS / ZOOM;
 static const float SCR_H = SPRITE_SIZE / ZOOM * SPRITE_ROWS / ZOOM;
+static const int SHARED_ID = -1;
+static const int P1_ID = 0;
+static const int P2_ID = 1;
 static const int P1_PIECE = 19;
 static const int P2_PIECE = 18;
 static const int P1_BOARD_TILES[2] = { 0, 1 };
@@ -45,10 +48,19 @@ struct piece_t
   int id;
   int position;
   sf::Sprite sprite;
+  sf::Vector2f origin;
+};
+
+struct board_t
+{
+  int pid; // owning players space -1 for shared
+  int position;
+  sf::Sprite sprite;
 };
 
 struct player_t
 {
+  int pid;
   int score;
   std::shared_ptr<std::vector<struct piece_t>> pieces;
 };
@@ -63,14 +75,14 @@ struct dice_t
 std::shared_ptr<std::vector<sf::Texture>>
 loadTextures(const char* path);
 
-std::shared_ptr<std::vector<struct piece_t>>
+std::shared_ptr<std::vector<struct board_t>>
 createBoard(std::shared_ptr<std::vector<sf::Texture>> textures);
 
 sf::Font
 loadFont();
 
 std::shared_ptr<struct player_t>
-createPlayer(sf::Texture& pieceTexture);
+createPlayer(const int pid, sf::Texture& pieceTexture);
 
 std::shared_ptr<struct piece_t>
 createPiece(int id, sf::Texture& texture);
@@ -101,4 +113,13 @@ getLegalMoves(std::shared_ptr<struct player_t> activePlayer,
 
 sf::Vector2f
 pos(float c, float r);
+
+bool
+canPlace(struct piece_t* piece,
+         int turn_pid,
+         struct board_t board_tile,
+         std::shared_ptr<std::vector<struct piece_t>> myPieces,
+         std::shared_ptr<std::vector<struct piece_t>> opponentPieces,
+         int& takenPieceId);
+
 #endif

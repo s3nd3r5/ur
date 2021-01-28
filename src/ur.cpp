@@ -30,8 +30,8 @@ change_state(GameState next)
   state = next;
 }
 
-// p1 = false, p2 = true
-bool turn_tracker = false;
+// tracks the turn pids
+int turn_pid = P1_ID;
 int rolling_frame = 0;
 
 inline void
@@ -43,20 +43,20 @@ next(int* i, int max)
 inline void
 next_turn()
 {
-  turn_tracker = !turn_tracker;
+  turn_pid = turn_pid == P1_ID ? P2_ID : P1_ID;
   change_state(GameState::WAITING);
 }
 
 inline bool
 p1_turn()
 {
-  return !turn_tracker;
+  return turn_pid == P1_ID;
 }
 
 inline bool
 p2_turn()
 {
-  return turn_tracker;
+  return turn_pid == P2_ID;
 }
 
 inline void
@@ -160,14 +160,14 @@ main()
   const std::shared_ptr<std::vector<sf::Texture>> textures =
     loadTextures(TEXTURE_PATH);
 
-  const std::shared_ptr<std::vector<struct piece_t>> board =
+  const std::shared_ptr<std::vector<struct board_t>> board =
     createBoard(textures);
 
   const std::shared_ptr<struct player_t> p1 =
-    createPlayer((*textures)[P1_PIECE]);
+    createPlayer(P1_ID, (*textures)[P1_PIECE]);
 
   const std::shared_ptr<struct player_t> p2 =
-    createPlayer((*textures)[P2_PIECE]);
+    createPlayer(P2_ID, (*textures)[P2_PIECE]);
 
   const std::shared_ptr<std::vector<sf::Sprite>> roll_sprites =
     createRollSprites((*textures)[ROLL_TILES[0]], (*textures)[ROLL_TILES[1]]);
@@ -187,11 +187,13 @@ main()
   int p_num = (SPRITE_COLS / 2) - (p1->pieces->size() / 2) - 1;
   for (auto& p : *(p1->pieces)) {
     p.sprite.setPosition(pos(p_num++, SPRITE_ROWS - 1));
+    p.origin = p.sprite.getPosition();
   }
 
   p_num = (SPRITE_COLS / 2) - (p2->pieces->size() / 2) - 1;
   for (auto& p : *(p2->pieces)) {
     p.sprite.setPosition(pos(p_num++, 0));
+    p.origin = p.sprite.getPosition();
   }
 
   sf::Sprite roll_result;
@@ -263,6 +265,15 @@ main()
         window.setView(window.getDefaultView()); // reset back to main view
       } else if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
         mouse_left_locked = false;
+        // is a piece being clicked
+        std::shared_ptr<std::vector<struct piece_t>> pieces, enemyPieces;
+        if (p1_turn()) {
+          pieces = p1->pieces;
+          enemyPieces = p2->pieces;
+        } else {
+          pieces = p2->pieces;
+          enemyPieces = p1->pieces;
+        }
         if (state == GameState::PLACING && grabbed_piece != nullptr) {
           // did the piece drop into place
           bool in_place = false;
@@ -274,9 +285,27 @@ main()
               if (intersect.width > SPRITE_SIZE / 2 &&
                   intersect.height > SPRITE_SIZE / 2) {
                 // check valid placement
-                grabbed_piece->sprite.setPosition(s.getPosition());
-                in_place = true;
-                break;
+                int takenPieceId = -1;
+                if (canPlace(grabbed_piece,
+                             turn_pid,
+                             bp,
+                             pieces,
+                             enemyPieces,
+                             takenPieceId)) {
+                  // did we take a piece
+                  if (takenPieceId >= 0) {
+                    for (auto& ep : (*enemyPieces)) {
+                      if (ep.id = takenPieceId) {
+                        ep.sprite.setPosition(ep.origin);
+                        ep.position = -1;
+                      }
+                    }
+                  }
+                  grabbed_piece->sprite.setPosition(s.getPosition());
+                  grabbed_piece->position = bp.position;
+                  in_place = true;
+                  break;
+                }
               }
             }
           }
@@ -308,12 +337,21 @@ main()
       float y = mPos.y - (grabbed_piece->sprite.getGlobalBounds().height / 2);
       grabbed_piece->sprite.setPosition(x, y);
     }
-    // draw unused pieces
-    for (auto& p : *(p1->pieces)) {
-      window.draw(p.sprite);
-    }
-    for (auto& p : *(p2->pieces)) {
-      window.draw(p.sprite);
+    // draw pieces (draw own pieces last to ensure "on top")
+    if (p1_turn()) {
+      for (auto& p : *(p2->pieces)) {
+        window.draw(p.sprite);
+      }
+      for (auto& p : *(p1->pieces)) {
+        window.draw(p.sprite);
+      }
+    } else {
+      for (auto& p : *(p1->pieces)) {
+        window.draw(p.sprite);
+      }
+      for (auto& p : *(p2->pieces)) {
+        window.draw(p.sprite);
+      }
     }
 
     render_dice(&window,
