@@ -160,7 +160,8 @@ main()
   const std::shared_ptr<std::vector<sf::Texture>> textures =
     loadTextures(TEXTURE_PATH);
 
-  const std::shared_ptr<std::vector<sf::Sprite>> board = createBoard(textures);
+  const std::shared_ptr<std::vector<struct piece_t>> board =
+    createBoard(textures);
 
   const std::shared_ptr<struct player_t> p1 =
     createPlayer((*textures)[P1_PIECE]);
@@ -266,11 +267,13 @@ main()
           // did the piece drop into place
           bool in_place = false;
           sf::FloatRect intersect;
-          for (auto& s : *(board)) {
+          for (auto& bp : (*board)) {
+            auto s = bp.sprite;
             if (s.getGlobalBounds().intersects(
                   grabbed_piece->sprite.getGlobalBounds(), intersect)) {
               if (intersect.width > SPRITE_SIZE / 2 &&
                   intersect.height > SPRITE_SIZE / 2) {
+                // check valid placement
                 grabbed_piece->sprite.setPosition(s.getPosition());
                 in_place = true;
                 break;
@@ -296,7 +299,7 @@ main()
     window.setView(view);
 
     for (auto s : *(board)) {
-      window.draw(s);
+      window.draw(s.sprite);
     }
 
     auto mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));

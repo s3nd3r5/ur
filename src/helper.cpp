@@ -36,20 +36,29 @@ next(int* p, int max)
   return i;
 }
 
-std::shared_ptr<std::vector<sf::Sprite>>
+std::shared_ptr<std::vector<struct piece_t>>
 createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
 {
-  auto sprites = std::make_shared<std::vector<sf::Sprite>>();
+  auto board = std::make_shared<std::vector<struct piece_t>>();
   sf::Texture& star_texture = (*textures)[STAR_TILE];
   int blank_idx = 0;
   int sp_idx = 0;
+  /* Positions
+   * [3, 2, 1, 0]  [14, 13, 12]
+   * [4, 5, 6, 7, 8, 9, 10, 11]
+   * [3, 2, 1, 0]  [14, 13, 12]
+   * star piece is 7
+   * vitory is 14
+   */
   // p1 pieces
   // p1 star
+  // id's don't matter
+  int id = 0;
   {
     sf::Sprite s;
     s.setTexture(star_texture);
     s.setPosition(pos(3, 5));
-    sprites->push_back(s);
+    board->push_back({ id++, 3, s });
   }
   // p1 start
   for (int i = 0; i < 3; i++) {
@@ -57,25 +66,25 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
     sf::Sprite s;
     s.setTexture(t);
     s.setPosition(pos(4 + i, 5));
-    sprites->push_back(s);
+    board->push_back({ id++, 2 - i, s });
   }
   // p1 end
   {
     sf::Sprite goal;
     goal.setTexture((*textures)[P1_END]);
     goal.setPosition(pos(8, 5));
-    sprites->push_back(goal);
+    board->push_back({ id++, EXIT_SPACE, goal });
 
     sf::Sprite end_star;
     end_star.setTexture(star_texture);
     end_star.setPosition(pos(9, 5));
-    sprites->push_back(end_star);
+    board->push_back({ id++, EXIT_SPACE - 1, end_star });
 
     sf::Texture& t = (*textures)[P1_BOARD_TILES[next(&sp_idx, 2)]];
     sf::Sprite s;
     s.setTexture(t);
     s.setPosition(pos(10, 5));
-    sprites->push_back(s);
+    board->push_back({ id++, EXIT_SPACE - 2, s });
   }
   // center pieces
   for (int i = 0; i < 8; i++) {
@@ -87,7 +96,7 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
       s.setTexture(t);
     }
     s.setPosition(pos(3 + i, 4));
-    sprites->push_back(s);
+    board->push_back({ id++, 4 + i, s });
   }
   // p2 pieces
   // p2 star
@@ -95,7 +104,7 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
     sf::Sprite s;
     s.setTexture(star_texture);
     s.setPosition(pos(3, 3));
-    sprites->push_back(s);
+    board->push_back({ id++, 3, s });
   }
   // p2 start
   for (int i = 0; i < 3; i++) {
@@ -103,28 +112,28 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
     sf::Sprite s;
     s.setTexture(t);
     s.setPosition(pos(4 + i, 3));
-    sprites->push_back(s);
+    board->push_back({ id++, 2 - i, s });
   }
   // p2 end
   {
     sf::Sprite goal;
     goal.setTexture((*textures)[P2_END]);
     goal.setPosition(pos(8, 3));
-    sprites->push_back(goal);
+    board->push_back({ id++, EXIT_SPACE, goal });
 
     sf::Sprite end_star;
     end_star.setTexture(star_texture);
     end_star.setPosition(pos(9, 3));
-    sprites->push_back(end_star);
+    board->push_back({ id++, EXIT_SPACE - 1, end_star });
 
     sf::Texture& t = (*textures)[P2_BOARD_TILES[next(&sp_idx, 2)]];
     sf::Sprite end_tile;
     end_tile.setTexture(t);
     end_tile.setPosition(pos(10, 3));
-    sprites->push_back(end_tile);
+    board->push_back({ id++, EXIT_SPACE - 2, end_tile });
   }
 
-  return sprites;
+  return board;
 }
 
 sf::Font
@@ -145,6 +154,7 @@ createPiece(int id, sf::Texture& texture)
   sf::Sprite s(texture);
   auto p = std::make_shared<struct piece_t>();
   p->id = id;
+  p->position = -1;
   p->sprite = s;
 
   return p;

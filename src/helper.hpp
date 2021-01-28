@@ -63,7 +63,7 @@ struct dice_t
 std::shared_ptr<std::vector<sf::Texture>>
 loadTextures(const char* path);
 
-std::shared_ptr<std::vector<sf::Sprite>>
+std::shared_ptr<std::vector<struct piece_t>>
 createBoard(std::shared_ptr<std::vector<sf::Texture>> textures);
 
 sf::Font
