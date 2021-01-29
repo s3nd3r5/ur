@@ -346,8 +346,11 @@ main()
                     }
                   }
                   grabbed_piece->sprite.setPosition(s.getPosition());
-                  grabbed_piece->position = bp.position;
-                  in_place = true;
+
+                  if (bp.position == (grabbed_piece->position + turn_roll)) {
+                    grabbed_piece->position = bp.position;
+                    in_place = true;
+                  }
                   break;
                 }
               }
@@ -372,6 +375,7 @@ main()
                 }
               }
             }
+
             if (!reroll) {
               next_turn(roll_sprites);
             } else {
