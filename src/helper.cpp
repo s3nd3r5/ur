@@ -228,6 +228,28 @@ createRollSprites(sf::Texture& t1, sf::Texture& t2)
   return sprites;
 }
 
+std::shared_ptr<std::vector<sf::Sprite>>
+createPassSprites(std::shared_ptr<std::vector<sf::Texture>> textures)
+{
+  auto sprites = std::make_shared<std::vector<sf::Sprite>>();
+
+  for (int i = 0; i < 3; i++) {
+    sprites->push_back(sf::Sprite((*textures)[PASS_TILES[i]]));
+  }
+  return sprites;
+}
+
+std::shared_ptr<std::vector<sf::Sprite>>
+createStartSprites(std::shared_ptr<std::vector<sf::Texture>> textures)
+{
+  auto sprites = std::make_shared<std::vector<sf::Sprite>>();
+
+  for (int i = 0; i < 3; i++) {
+    sprites->push_back(sf::Sprite((*textures)[START_TILES[i]]));
+  }
+  return sprites;
+}
+
 void
 makeNum(sf::Sprite* sprite_ptr,
         int num,

@@ -31,6 +31,8 @@ static const int DIE_0 = 17;
 static const int DIE_1 = 16;
 static const int NUMS_TILES[8] = { 8, 9, 10, 11, 12, 13, 14, 15 };
 static const int ROLL_TILES[2] = { 20, 21 };
+static const int PASS_TILES[3] = { 24, 25, 26 };
+static const int START_TILES[3] = { 27, 28, 29 };
 
 static const char* TITLE = "Royal Game of Ur";
 static const sf::Color GLOBAL_MASK(255, 0, 255, 255);
@@ -39,6 +41,7 @@ enum GameState
 {
   WAITING,
   ROLLING,
+  PASSING,
   PLACING,
   GAME_OVER
 };
@@ -92,6 +95,12 @@ createAllDice(sf::Texture& die0Texture, sf::Texture& die1Texture);
 
 std::shared_ptr<std::vector<sf::Sprite>>
 createRollSprites(sf::Texture& t1, sf::Texture& t2);
+
+std::shared_ptr<std::vector<sf::Sprite>>
+createPassSprites(std::shared_ptr<std::vector<sf::Texture>> textures);
+
+std::shared_ptr<std::vector<sf::Sprite>>
+createStartSprites(std::shared_ptr<std::vector<sf::Texture>> textures);
 
 void
 makeNum(sf::Sprite* sprite_ptr,

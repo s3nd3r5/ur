@@ -41,9 +41,11 @@ next(int* i, int max)
 }
 
 inline void
-next_turn()
+next_turn(std::shared_ptr<std::vector<sf::Sprite>> roll_sprites)
 {
+  turn_roll = 0;
   turn_pid = turn_pid == P1_ID ? P2_ID : P1_ID;
+  for (auto& s : (*roll_sprites)) s.setColor(sf::Color::White);
   change_state(GameState::WAITING);
 }
 
@@ -63,6 +65,7 @@ inline void
 render_dice(sf::RenderWindow* window,
             std::shared_ptr<std::vector<struct dice_t>> dice,
             std::shared_ptr<std::vector<sf::Sprite>> roll_sprites,
+            std::shared_ptr<std::vector<sf::Sprite>> pass_sprites,
             std::shared_ptr<std::vector<sf::Texture>> textures,
             sf::Sprite* roll_result,
             ur::TimedLatch* animation_timer,
@@ -71,7 +74,6 @@ render_dice(sf::RenderWindow* window,
 
   if (animation_timer->is_completed()) {
     animation_timer->reset();
-    change_state(GameState::PLACING);
     int rolls[4] = {
       dice_rand.next(), dice_rand.next(), dice_rand.next(), dice_rand.next()
     };
@@ -81,8 +83,15 @@ render_dice(sf::RenderWindow* window,
       die.show = die.value == rolls[i / 2];
     }
     // set roll result
-    for (int r : rolls)
+    for (int r : rolls) {
       turn_roll += r;
+    }
+    makeNum(roll_result, turn_roll, textures);
+    if (turn_roll == 0) {
+      change_state(GameState::PASSING);
+    } else {
+      change_state(GameState::PLACING);
+    }
   }
 
   // draw dice
@@ -99,10 +108,16 @@ render_dice(sf::RenderWindow* window,
     roll_c = dice_c;
   }
 
-  if (state == GameState::PLACING) {
+  if (state == GameState::PLACING || state == GameState::PASSING) {
     // draw roll text
-    makeNum(roll_result, turn_roll, textures);
     window->draw(*roll_result);
+    if (turn_roll == 0) {
+      int psi = SPRITE_COLS / 2 - 1;
+      for (auto& ps : (*pass_sprites)) {
+        ps.setPosition(pos(psi++, SPRITE_ROWS / 2));
+        window->draw(ps);
+      }
+    }
   } else if (state == GameState::ROLLING) {
     // if completed update dice sprites
     if (animation_frame_timer->is_completed()) {
@@ -174,6 +189,12 @@ main()
 
   const std::shared_ptr<std::vector<struct dice_t>> dice =
     createAllDice((*textures)[DIE_0], (*textures)[DIE_1]);
+
+  const std::shared_ptr<std::vector<sf::Sprite>> pass_sprites =
+    createPassSprites(textures);
+
+  const std::shared_ptr<std::vector<sf::Sprite>> start_sprites =
+    createStartSprites(textures);
 
   sf::Sprite p1Score;
   p1Score.setPosition(pos(0, SPRITE_ROWS - 1));
@@ -261,6 +282,14 @@ main()
               break;
             }
           }
+        } else if (state == GameState::PASSING) {
+          for (auto& s : (*pass_sprites)) {
+            // zoom sprite bounds
+            if (s.getGlobalBounds().contains(mPos)) {
+              next_turn(roll_sprites);
+              break;
+            }
+          }
         }
         window.setView(window.getDefaultView()); // reset back to main view
       } else if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
@@ -311,11 +340,7 @@ main()
           }
 
           if (in_place) {
-            next_turn();
-            turn_roll = 0;
-            for (auto& s : (*roll_sprites)) {
-              s.setColor(sf::Color::White);
-            }
+            next_turn(roll_sprites);
           } else {
             grabbed_piece->sprite.setPosition(grabbed_piece_origin);
           }
@@ -337,6 +362,7 @@ main()
       float y = mPos.y - (grabbed_piece->sprite.getGlobalBounds().height / 2);
       grabbed_piece->sprite.setPosition(x, y);
     }
+
     // draw pieces (draw own pieces last to ensure "on top")
     if (p1_turn()) {
       for (auto& p : *(p2->pieces)) {
@@ -357,6 +383,7 @@ main()
     render_dice(&window,
                 dice,
                 roll_sprites,
+                pass_sprites,
                 textures,
                 &roll_result,
                 &rolling_animation_timer,
