@@ -33,6 +33,7 @@ static const int NUMS_TILES[8] = { 8, 9, 10, 11, 12, 13, 14, 15 };
 static const int ROLL_TILES[2] = { 20, 21 };
 static const int PASS_TILES[3] = { 24, 25, 26 };
 static const int START_TILES[3] = { 27, 28, 29 };
+static const int REROLL_POS[3] = { 3, 7, 13 };
 
 static const char* TITLE = "Royal Game of Ur";
 static const sf::Color GLOBAL_MASK(255, 0, 255, 255);
@@ -132,6 +133,7 @@ canPlace(struct piece_t* piece,
          int& takenPieceId);
 
 void
-clearPiece(std::shared_ptr<std::vector<struct piece_t>> pieces, struct piece_t* piece);
+clearPiece(std::shared_ptr<std::vector<struct piece_t>> pieces,
+           struct piece_t* piece);
 
 #endif

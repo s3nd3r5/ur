@@ -1,5 +1,5 @@
 [x] knocking back to start
-[ ] star second rolls
+[x] star second rolls
 [x] star protection
 [x] 0 passing
 [x] scoring on final position

@@ -30,6 +30,13 @@ change_state(GameState next)
   state = next;
 }
 
+inline void
+change_color(std::shared_ptr<std::vector<sf::Sprite>> sprites, sf::Color color)
+{
+  for (auto& s : *sprites)
+    s.setColor(color);
+}
+
 // tracks the turn pids
 int turn_pid = P1_ID;
 int rolling_frame = 0;
@@ -41,13 +48,18 @@ next(int* i, int max)
 }
 
 inline void
-next_turn(std::shared_ptr<std::vector<sf::Sprite>> roll_sprites)
+reset_turn(std::shared_ptr<std::vector<sf::Sprite>> roll_sprites)
 {
   turn_roll = 0;
-  turn_pid = turn_pid == P1_ID ? P2_ID : P1_ID;
-  for (auto& s : (*roll_sprites))
-    s.setColor(sf::Color::White);
+  change_color(roll_sprites, sf::Color::White);
   change_state(GameState::WAITING);
+}
+
+inline void
+next_turn(std::shared_ptr<std::vector<sf::Sprite>> roll_sprites)
+{
+  turn_pid = turn_pid == P1_ID ? P2_ID : P1_ID;
+  reset_turn(roll_sprites);
 }
 
 inline bool
@@ -258,9 +270,7 @@ main()
               // setup for rolling
               rolling_animation_timer.start();
               change_state(GameState::ROLLING);
-              for (auto& rs : (*roll_sprites)) {
-                rs.setColor(SEMI_TRANSPARENT);
-              }
+              change_color(roll_sprites, SEMI_TRANSPARENT);
               for (int i = 0; i < 8; i++) {
                 (*dice)[i].show = i % 2 == 0; // only show the 0s
               }
@@ -341,6 +351,7 @@ main()
           }
 
           if (in_place) {
+            bool reroll = false;
             if (grabbed_piece->position == EXIT_SPACE) {
               if (p1_turn()) {
                 makeNum(&p1Score, ++p1->score, textures);
@@ -349,8 +360,19 @@ main()
                 makeNum(&p2Score, ++p2->score, textures);
                 clearPiece(p2->pieces, grabbed_piece);
               }
+            } else {
+              // check if reroll
+              for (int p : REROLL_POS) {
+                if (grabbed_piece->position == p) {
+                  reroll = true;
+                }
+              }
             }
-            next_turn(roll_sprites);
+            if (!reroll) {
+              next_turn(roll_sprites);
+            } else {
+              reset_turn(roll_sprites);
+            }
           } else {
             grabbed_piece->sprite.setPosition(grabbed_piece_origin);
           }
