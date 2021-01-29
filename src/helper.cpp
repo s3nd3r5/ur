@@ -345,6 +345,46 @@ canPlace(struct piece_t* piece,
   return true;
 }
 
+/*
+ * this move simply checks for if any legal move exists
+ * this is for the purpose of passing if no legal move available
+ */
+bool
+hasMoves(std::shared_ptr<struct player_t> activePlayer,
+         std::shared_ptr<struct player_t> opponent,
+         int roll)
+{
+  int occupied_spaces[14] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+  for (auto& p : (*activePlayer->pieces)) {
+    if (p.position < 0)
+      continue; // not on board
+    int target = p.position + roll;
+    if (target == EXIT_SPACE)
+      return true; // can always land in the exit skip rest of the function
+    occupied_spaces[p.position]++;
+  }
+
+  for (auto& op : (*opponent->pieces)) {
+    if (op.position == SAFE_SPACE) {
+      occupied_spaces[SAFE_SPACE]++;
+      break;
+    }
+  }
+
+  for (auto& p : (*activePlayer->pieces)) {
+    int target = p.position + roll;
+    if (target > EXIT_SPACE) {
+      continue; // off the board
+    } else if (target == EXIT_SPACE) {
+      return true; // can always land in the exit
+    } else if (occupied_spaces[target] == 0) {
+      return true; // has a free space
+    }
+  }
+  return false;
+}
+
 void
 clearPiece(std::shared_ptr<std::vector<struct piece_t>> pieces,
            struct piece_t* piece)

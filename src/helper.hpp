@@ -117,9 +117,10 @@ canMovePiece(std::shared_ptr<struct piece_t> piece,
              std::shared_ptr<std::vector<struct piece_t>> myPieces,
              std::shared_ptr<std::vector<struct piece_t>> enemyPieces);
 
-std::vector<int>
-getLegalMoves(std::shared_ptr<struct player_t> activePlayer,
-              std::shared_ptr<struct player_t> opponent);
+bool
+hasMoves(std::shared_ptr<struct player_t> activePlayer,
+         std::shared_ptr<struct player_t> opponent,
+         int roll);
 
 sf::Vector2f
 pos(float c, float r);

@@ -77,6 +77,8 @@ p2_turn()
 
 inline void
 render_dice(sf::RenderWindow* window,
+            std::shared_ptr<struct player_t> active_player,
+            std::shared_ptr<struct player_t> opponent,
             std::shared_ptr<std::vector<struct dice_t>> dice,
             std::shared_ptr<std::vector<sf::Sprite>> roll_sprites,
             std::shared_ptr<std::vector<sf::Sprite>> pass_sprites,
@@ -101,7 +103,7 @@ render_dice(sf::RenderWindow* window,
       turn_roll += r;
     }
     makeNum(roll_result, turn_roll, textures);
-    if (turn_roll == 0) {
+    if (turn_roll == 0 || !hasMoves(active_player, opponent, turn_roll)) {
       change_state(GameState::PASSING);
     } else {
       change_state(GameState::PLACING);
@@ -122,15 +124,15 @@ render_dice(sf::RenderWindow* window,
     roll_c = dice_c;
   }
 
-  if (state == GameState::PLACING || state == GameState::PASSING) {
+  if (state == GameState::PLACING) {
+    window->draw(*roll_result);
+  } else if (state == GameState::PASSING) {
     // draw roll text
     window->draw(*roll_result);
-    if (turn_roll == 0) {
-      int psi = SPRITE_COLS / 2 - 1;
-      for (auto& ps : (*pass_sprites)) {
-        ps.setPosition(pos(psi++, SPRITE_ROWS / 2));
-        window->draw(ps);
-      }
+    int psi = SPRITE_COLS / 2 - 1;
+    for (auto& ps : (*pass_sprites)) {
+      ps.setPosition(pos(psi++, SPRITE_ROWS / 2));
+      window->draw(ps);
     }
   } else if (state == GameState::ROLLING) {
     // if completed update dice sprites
@@ -415,6 +417,8 @@ main()
     }
 
     render_dice(&window,
+                p1_turn() ? p1 : p2,
+                p2_turn() ? p1 : p2,
                 dice,
                 roll_sprites,
                 pass_sprites,
