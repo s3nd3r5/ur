@@ -337,7 +337,7 @@ main()
                   // did we take a piece
                   if (takenPieceId >= 0) {
                     for (auto& ep : (*enemyPieces)) {
-                      if (ep.id = takenPieceId) {
+                      if (ep.id == takenPieceId) {
                         ep.sprite.setPosition(ep.origin);
                         ep.position = -1;
                       }
