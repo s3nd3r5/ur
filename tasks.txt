@@ -1,7 +1,7 @@
-[ ] knocking back to start
+[x] knocking back to start
 [ ] star second rolls
-[ ] star protection
+[x] star protection
 [ ] 0 passing
 [ ] scoring on final position
-[ ] no overlap
+[x] no overlap
 
