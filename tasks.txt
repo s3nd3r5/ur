@@ -5,4 +5,9 @@
 [x] scoring on final position
 [x] no overlap
 [x] pass on no-moves available
-[ ] only pass turn on "legal" move
+[x] only pass turn on "legal" move
+[ ] windows build
+[ ] add useful logging
+[ ] detect "win"
+[ ] add splash / start screen?
+[ ] 1p / 2p modes?
