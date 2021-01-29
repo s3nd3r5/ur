@@ -2,6 +2,6 @@
 [ ] star second rolls
 [x] star protection
 [x] 0 passing
-[ ] scoring on final position
+[x] scoring on final position
 [x] no overlap
 

@@ -131,4 +131,7 @@ canPlace(struct piece_t* piece,
          std::shared_ptr<std::vector<struct piece_t>> opponentPieces,
          int& takenPieceId);
 
+void
+clearPiece(std::shared_ptr<std::vector<struct piece_t>> pieces, struct piece_t* piece);
+
 #endif

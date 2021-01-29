@@ -45,7 +45,8 @@ next_turn(std::shared_ptr<std::vector<sf::Sprite>> roll_sprites)
 {
   turn_roll = 0;
   turn_pid = turn_pid == P1_ID ? P2_ID : P1_ID;
-  for (auto& s : (*roll_sprites)) s.setColor(sf::Color::White);
+  for (auto& s : (*roll_sprites))
+    s.setColor(sf::Color::White);
   change_state(GameState::WAITING);
 }
 
@@ -340,6 +341,15 @@ main()
           }
 
           if (in_place) {
+            if (grabbed_piece->position == EXIT_SPACE) {
+              if (p1_turn()) {
+                makeNum(&p1Score, ++p1->score, textures);
+                clearPiece(p1->pieces, grabbed_piece);
+              } else {
+                makeNum(&p2Score, ++p2->score, textures);
+                clearPiece(p2->pieces, grabbed_piece);
+              }
+            }
             next_turn(roll_sprites);
           } else {
             grabbed_piece->sprite.setPosition(grabbed_piece_origin);
