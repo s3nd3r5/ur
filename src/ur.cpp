@@ -1,4 +1,5 @@
 #include "helper.hpp"
+#include "icon.h"
 #include "random.hpp"
 #include "timedLatch.hpp"
 #include <SFML/Graphics.hpp>
@@ -236,6 +237,7 @@ main()
   sf::RenderWindow window(sf::VideoMode(SCR_W, SCR_H), TITLE);
   window.setFramerateLimit(60);
   window.setVerticalSyncEnabled(true);
+  window.setIcon(32, 32, ur_icon);
 
   sf::View view(window.getDefaultView());
   view.zoom(ZOOM);
