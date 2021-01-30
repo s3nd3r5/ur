@@ -1,5 +1,6 @@
 #include "helper.hpp"
 #include "icon.h"
+#include "log.hpp"
 #include "random.hpp"
 #include "timedLatch.hpp"
 #include <SFML/Graphics.hpp>
@@ -26,7 +27,7 @@ bool mouse_left_locked = false;
 inline void
 change_state(GameState next)
 {
-  std::cout << "GameState == " << next << std::endl;
+  Log::debug("Changing state " + Log::str(next));
   prev_state = state;
   state = next;
 }
@@ -60,6 +61,7 @@ inline void
 next_turn(std::shared_ptr<std::vector<sf::Sprite>> roll_sprites)
 {
   turn_pid = turn_pid == P1_ID ? P2_ID : P1_ID;
+  Log::debug(turn_pid == P1_ID ? "P1 Turn" : "P2 Turn");
   reset_turn(roll_sprites);
 }
 
@@ -102,10 +104,13 @@ render_dice(sf::RenderWindow* window,
     for (int r : rolls) {
       turn_roll += r;
     }
+    Log::debug("Roll result " + Log::str(turn_roll));
     makeNum(roll_result, turn_roll, textures);
     if (turn_roll == 0 || !hasMoves(active_player, opponent, turn_roll)) {
+      Log::debug("No move, passing");
       change_state(GameState::PASSING);
     } else {
+      Log::debug("Place a piece");
       change_state(GameState::PLACING);
     }
   }
@@ -188,6 +193,7 @@ render_dice(sf::RenderWindow* window,
 int
 main()
 {
+  Log::info("Starting ur");
   const std::shared_ptr<std::vector<sf::Texture>> textures =
     loadTextures(TEXTURE_PATH);
 
@@ -212,6 +218,7 @@ main()
   const std::shared_ptr<std::vector<sf::Sprite>> start_sprites =
     createStartSprites(textures);
 
+  Log::info("Assets loaded");
   sf::Sprite p1Score;
   p1Score.setPosition(pos(0, SPRITE_ROWS - 1));
   makeNum(&p1Score, 0, textures);
@@ -249,12 +256,14 @@ main()
   ur::TimedLatch rolling_animation_timer(sf::seconds(3));
   ur::TimedLatch rolling_animation_frame_pause_timer(sf::milliseconds(100));
 
+  Log::info("Starting game");
   while (window.isOpen()) {
 
     sf::Event event;
     while (window.pollEvent(event)) {
       if (event.type == sf::Event::Closed ||
           sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
+        Log::info("Quiting game");
         window.close();
       }
 
@@ -270,7 +279,7 @@ main()
           for (auto& s : (*roll_sprites)) {
             // zoom sprite bounds
             if (s.getGlobalBounds().contains(mPos)) {
-              std::cout << "Roll!" << std::endl;
+              Log::debug("Rolling");
               // setup for rolling
               rolling_animation_timer.start();
               change_state(GameState::ROLLING);
@@ -294,6 +303,7 @@ main()
             if (p.sprite.getGlobalBounds().contains(mPos)) {
               grabbed_piece = &p;
               grabbed_piece_origin = grabbed_piece->sprite.getPosition();
+              Log::debug("Grabbed piece " + Log::str(grabbed_piece->id));
               break;
             }
           }
@@ -301,6 +311,7 @@ main()
           for (auto& s : (*pass_sprites)) {
             // zoom sprite bounds
             if (s.getGlobalBounds().contains(mPos)) {
+              Log::debug("Passing");
               next_turn(roll_sprites);
               break;
             }
@@ -340,6 +351,7 @@ main()
                   if (takenPieceId >= 0) {
                     for (auto& ep : (*enemyPieces)) {
                       if (ep.id == takenPieceId) {
+                        Log::debug("Captured piece " + Log::str(takenPieceId) + " returning to board side");
                         ep.sprite.setPosition(ep.origin);
                         ep.position = -1;
                       }
@@ -348,6 +360,7 @@ main()
                   grabbed_piece->sprite.setPosition(s.getPosition());
 
                   if (bp.position == (grabbed_piece->position + turn_roll)) {
+                    Log::debug("Placed piece in position " + Log::str(bp.position));
                     grabbed_piece->position = bp.position;
                     in_place = true;
                   }
@@ -362,9 +375,11 @@ main()
             if (grabbed_piece->position == EXIT_SPACE) {
               if (p1_turn()) {
                 makeNum(&p1Score, ++p1->score, textures);
+                Log::debug("P1 scored. Score " + Log::str(p1->score) + ". Clearing piece " + Log::str(grabbed_piece->id));
                 clearPiece(p1->pieces, grabbed_piece);
               } else {
                 makeNum(&p2Score, ++p2->score, textures);
+                Log::debug("P2 scored. Score " + Log::str(p2->score) + ". Clearing piece " + Log::str(grabbed_piece->id));
                 clearPiece(p2->pieces, grabbed_piece);
               }
             } else {
@@ -379,11 +394,14 @@ main()
             if (!reroll) {
               next_turn(roll_sprites);
             } else {
+              Log::debug("Player re-rolls");
               reset_turn(roll_sprites);
             }
           } else {
+            Log::debug("Resetting piece position");
             grabbed_piece->sprite.setPosition(grabbed_piece_origin);
           }
+          Log::debug("Release piece");
           grabbed_piece = nullptr;
         }
       }

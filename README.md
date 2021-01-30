@@ -59,3 +59,10 @@ make
 
 You can run your windows build via wine64 by bundling your dll and the res folder along side the exe.
 
+### Debug
+
+To enable debug logging use the cmake flags:
+
+```
+cmake -DCMAKE_BUILD_TYPE=Debug
+```

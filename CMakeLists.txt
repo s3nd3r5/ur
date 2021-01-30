@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 project(ur-sfml)
 set(CMAKE_CXX_STANDARD 20)
 set(EXECUTABLE_NAME ur)
-
+set(CMAKE_CXX_FLAGS_DEBUG -DDEBUG)
 # detect windows
 if (WIN32)
   set(SFML_DIR /home/senders/Downloads/SFML-2.5.1/lib/cmake/SFML)
