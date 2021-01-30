@@ -6,7 +6,7 @@
 [x] no overlap
 [x] pass on no-moves available
 [x] only pass turn on "legal" move
-[ ] windows build
+[x] windows build
 [ ] add useful logging
 [ ] detect "win"
 [ ] add splash / start screen?
