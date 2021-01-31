@@ -10,13 +10,21 @@ endif()
 
 # setup SFML
 set(SFML_LIBRARIES sfml-system sfml-window sfml-graphics)
+# prepend sfml-main for windows
+if (WIN32)
+  set(SFML_LIBRARIES sfml-main ${SFML_LIBRARIES})
+endif()
 find_package(SFML 2.5 REQUIRED COMPONENTS system window graphics)
-
-add_executable(${EXECUTABLE_NAME} 
+set(SRC
   src/ur.cpp 
   src/helper.cpp 
   src/timedLatch.cpp 
   src/random.cpp)
+if(WIN32)
+  add_executable(${EXECUTABLE_NAME} WIN32 ${SRC})
+else()
+  add_executable(${EXECUTABLE_NAME} ${SRC})
+endif()
 target_link_libraries(${EXECUTABLE_NAME} ${SFML_LIBRARIES})
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/res DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
