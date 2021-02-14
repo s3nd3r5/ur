@@ -1,0 +1,8 @@
+*.o
+ur
+ur.exe
+Makefile
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+build-mingw
