@@ -369,17 +369,6 @@ main()
                              pieces,
                              enemyPieces,
                              takenPieceId)) {
-                  // did we take a piece
-                  if (takenPieceId >= 0) {
-                    for (auto& ep : (*enemyPieces)) {
-                      if (ep.id == takenPieceId) {
-                        Log::debug("Captured piece " + Log::str(takenPieceId) +
-                                   " returning to board side");
-                        ep.sprite.setPosition(ep.origin);
-                        ep.position = -1;
-                      }
-                    }
-                  }
                   grabbed_piece->sprite.setPosition(s.getPosition());
 
                   if (bp.position == (grabbed_piece->position + turn_roll)) {
@@ -387,6 +376,19 @@ main()
                                Log::str(bp.position));
                     grabbed_piece->position = bp.position;
                     in_place = true;
+
+                    // did we take a piece
+                    if (takenPieceId >= 0) {
+                      for (auto& ep : (*enemyPieces)) {
+                        if (ep.id == takenPieceId) {
+                          Log::debug("Captured piece " +
+                                     Log::str(takenPieceId) +
+                                     " returning to board side");
+                          ep.sprite.setPosition(ep.origin);
+                          ep.position = -1;
+                        }
+                      }
+                    }
                   }
                   break;
                 }
