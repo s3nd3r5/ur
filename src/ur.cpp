@@ -275,7 +275,7 @@ main()
   view.setSize(view.getSize() * ZOOM);
   view.setCenter(view.getSize() / 2.f);
 
-  ur::TimedLatch rolling_animation_timer(sf::seconds(3));
+  ur::TimedLatch rolling_animation_timer(sf::seconds(1));
   ur::TimedLatch rolling_animation_frame_pause_timer(sf::milliseconds(100));
 
   Log::info("Starting game");
