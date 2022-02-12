@@ -8,6 +8,6 @@
 [x] only pass turn on "legal" move
 [x] windows build
 [x] add useful logging
-[ ] detect "win"
+[x] detect "win"
 [ ] add splash / start screen?
 [ ] 1p / 2p modes?
