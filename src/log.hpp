@@ -2,8 +2,8 @@
 #define UR_LOG_H
 
 #include "helper.hpp"
-#include <iostream>
 #include <ctime>
+#include <iostream>
 #include <string>
 /**
  * A very simple stdio/stderr logger

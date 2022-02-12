@@ -240,6 +240,22 @@ createPassSprites(std::shared_ptr<std::vector<sf::Texture>> textures)
 }
 
 std::shared_ptr<std::vector<sf::Sprite>>
+createWinSprites(int player_id,
+                 std::shared_ptr<std::vector<sf::Texture>> textures)
+{
+  auto sprites = std::make_shared<std::vector<sf::Sprite>>();
+  auto tile_ids = player_id == P1_ID ? P1_WIN_TILES : P2_WIN_TILES;
+  auto x = 4;
+  auto y = 4;
+  for (int i = 0; i < 5; i++) {
+    auto s = sf::Sprite((*textures)[tile_ids[i]]);
+    s.setPosition(pos(x + i, y));
+    sprites->push_back(s);
+  }
+  return sprites;
+}
+
+std::shared_ptr<std::vector<sf::Sprite>>
 createStartSprites(std::shared_ptr<std::vector<sf::Texture>> textures)
 {
   auto sprites = std::make_shared<std::vector<sf::Sprite>>();
@@ -396,4 +412,10 @@ clearPiece(std::shared_ptr<std::vector<struct piece_t>> pieces,
       break;
     }
   }
+}
+
+bool
+hasWon(std::shared_ptr<struct player_t> player)
+{
+  return player->pieces->size() == 0;
 }

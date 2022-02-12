@@ -24,6 +24,13 @@ sf::Vector2f grabbed_piece_origin;
 int turn_roll = 0;
 bool mouse_left_locked = false;
 
+// tracks the turn pids
+int turn_pid = P1_ID;
+int rolling_frame = 0;
+
+// which player won P1_ID or P2_ID
+int winner = -1;
+
 inline void
 change_state(GameState next)
 {
@@ -33,15 +40,24 @@ change_state(GameState next)
 }
 
 inline void
+set_game_over()
+{
+  Log::debug("Game over!");
+  change_state(GameState::GAME_OVER);
+}
+
+inline bool
+is_game_over()
+{
+  return state == GameState::GAME_OVER;
+}
+
+inline void
 change_color(std::shared_ptr<std::vector<sf::Sprite>> sprites, sf::Color color)
 {
   for (auto& s : *sprites)
     s.setColor(color);
 }
-
-// tracks the turn pids
-int turn_pid = P1_ID;
-int rolling_frame = 0;
 
 inline void
 next(int* i, int max)
@@ -215,6 +231,12 @@ main()
   const std::shared_ptr<std::vector<sf::Sprite>> pass_sprites =
     createPassSprites(textures);
 
+  const std::shared_ptr<std::vector<sf::Sprite>> p1_win_sprites =
+    createWinSprites(P1_ID, textures);
+
+  const std::shared_ptr<std::vector<sf::Sprite>> p2_win_sprites =
+    createWinSprites(P2_ID, textures);
+
   const std::shared_ptr<std::vector<sf::Sprite>> start_sprites =
     createStartSprites(textures);
 
@@ -351,7 +373,8 @@ main()
                   if (takenPieceId >= 0) {
                     for (auto& ep : (*enemyPieces)) {
                       if (ep.id == takenPieceId) {
-                        Log::debug("Captured piece " + Log::str(takenPieceId) + " returning to board side");
+                        Log::debug("Captured piece " + Log::str(takenPieceId) +
+                                   " returning to board side");
                         ep.sprite.setPosition(ep.origin);
                         ep.position = -1;
                       }
@@ -360,7 +383,8 @@ main()
                   grabbed_piece->sprite.setPosition(s.getPosition());
 
                   if (bp.position == (grabbed_piece->position + turn_roll)) {
-                    Log::debug("Placed piece in position " + Log::str(bp.position));
+                    Log::debug("Placed piece in position " +
+                               Log::str(bp.position));
                     grabbed_piece->position = bp.position;
                     in_place = true;
                   }
@@ -375,11 +399,13 @@ main()
             if (grabbed_piece->position == EXIT_SPACE) {
               if (p1_turn()) {
                 makeNum(&p1Score, ++p1->score, textures);
-                Log::debug("P1 scored. Score " + Log::str(p1->score) + ". Clearing piece " + Log::str(grabbed_piece->id));
+                Log::debug("P1 scored. Score " + Log::str(p1->score) +
+                           ". Clearing piece " + Log::str(grabbed_piece->id));
                 clearPiece(p1->pieces, grabbed_piece);
               } else {
                 makeNum(&p2Score, ++p2->score, textures);
-                Log::debug("P2 scored. Score " + Log::str(p2->score) + ". Clearing piece " + Log::str(grabbed_piece->id));
+                Log::debug("P2 scored. Score " + Log::str(p2->score) +
+                           ". Clearing piece " + Log::str(grabbed_piece->id));
                 clearPiece(p2->pieces, grabbed_piece);
               }
             } else {
@@ -409,47 +435,61 @@ main()
 
     window.clear(BG_COLOR);
     window.setView(view);
-
-    for (auto s : *(board)) {
-      window.draw(s.sprite);
-    }
-
-    auto mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-    if (grabbed_piece != nullptr) {
-      float x = mPos.x - (grabbed_piece->sprite.getGlobalBounds().width / 2);
-      float y = mPos.y - (grabbed_piece->sprite.getGlobalBounds().height / 2);
-      grabbed_piece->sprite.setPosition(x, y);
-    }
-
-    // draw pieces (draw own pieces last to ensure "on top")
-    if (p1_turn()) {
-      for (auto& p : *(p2->pieces)) {
-        window.draw(p.sprite);
+    if (!is_game_over()) {
+      for (auto s : *(board)) {
+        window.draw(s.sprite);
       }
-      for (auto& p : *(p1->pieces)) {
-        window.draw(p.sprite);
+
+      auto mPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+      if (grabbed_piece != nullptr) {
+        float x = mPos.x - (grabbed_piece->sprite.getGlobalBounds().width / 2);
+        float y = mPos.y - (grabbed_piece->sprite.getGlobalBounds().height / 2);
+        grabbed_piece->sprite.setPosition(x, y);
+      }
+
+      // draw pieces (draw own pieces last to ensure "on top")
+      if (p1_turn()) {
+        for (auto& p : *(p2->pieces)) {
+          window.draw(p.sprite);
+        }
+        for (auto& p : *(p1->pieces)) {
+          window.draw(p.sprite);
+        }
+      } else {
+        for (auto& p : *(p1->pieces)) {
+          window.draw(p.sprite);
+        }
+        for (auto& p : *(p2->pieces)) {
+          window.draw(p.sprite);
+        }
+      }
+
+      render_dice(&window,
+                  p1_turn() ? p1 : p2,
+                  p2_turn() ? p1 : p2,
+                  dice,
+                  roll_sprites,
+                  pass_sprites,
+                  textures,
+                  &roll_result,
+                  &rolling_animation_timer,
+                  &rolling_animation_frame_pause_timer);
+      for (auto& s : (*roll_sprites)) {
+        window.draw(s);
+      }
+
+      if (!is_game_over() && hasWon(p1)) {
+        set_game_over();
+        winner = P1_ID;
+      } else if (!is_game_over() && hasWon(p2)) {
+        set_game_over();
+        winner = P2_ID;
       }
     } else {
-      for (auto& p : *(p1->pieces)) {
-        window.draw(p.sprite);
+      auto win_sprites = winner == P1_ID ? p1_win_sprites : p2_win_sprites;
+      for (auto& s : (*win_sprites)) {
+        window.draw(s);
       }
-      for (auto& p : *(p2->pieces)) {
-        window.draw(p.sprite);
-      }
-    }
-
-    render_dice(&window,
-                p1_turn() ? p1 : p2,
-                p2_turn() ? p1 : p2,
-                dice,
-                roll_sprites,
-                pass_sprites,
-                textures,
-                &roll_result,
-                &rolling_animation_timer,
-                &rolling_animation_frame_pause_timer);
-    for (auto& s : (*roll_sprites)) {
-      window.draw(s);
     }
 
     window.draw(p1Score);

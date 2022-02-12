@@ -34,6 +34,8 @@ static const int ROLL_TILES[2] = { 20, 21 };
 static const int PASS_TILES[3] = { 24, 25, 26 };
 static const int START_TILES[3] = { 27, 28, 29 };
 static const int REROLL_POS[3] = { 3, 7, 13 };
+static const int P1_WIN_TILES[5] = { 30, 31, 32, 33, 34 };
+static const int P2_WIN_TILES[5] = { 35, 36, 37, 38, 39 };
 
 static const char* TITLE = "Royal Game of Ur";
 static const sf::Color GLOBAL_MASK(255, 0, 255, 255);
@@ -101,6 +103,10 @@ std::shared_ptr<std::vector<sf::Sprite>>
 createPassSprites(std::shared_ptr<std::vector<sf::Texture>> textures);
 
 std::shared_ptr<std::vector<sf::Sprite>>
+createWinSprites(int player_id,
+                 std::shared_ptr<std::vector<sf::Texture>> textures);
+
+std::shared_ptr<std::vector<sf::Sprite>>
 createStartSprites(std::shared_ptr<std::vector<sf::Texture>> textures);
 
 void
@@ -136,5 +142,8 @@ canPlace(struct piece_t* piece,
 void
 clearPiece(std::shared_ptr<std::vector<struct piece_t>> pieces,
            struct piece_t* piece);
+
+bool
+hasWon(std::shared_ptr<struct player_t> player);
 
 #endif
