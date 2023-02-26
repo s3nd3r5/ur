@@ -5,13 +5,10 @@
 #include "timedLatch.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
-#include <iostream>
 #include <string>
 
 const char* TEXTURE_PATH = "./res/ur.png";
-const float PAD = 32.f;
-const float PIECE_PAD = 8.f;
-const float TEXT_OFFSET = 8.f;
+
 const sf::Color BG_COLOR = sf::Color(66, 47, 81, 255);
 const sf::Color SEMI_TRANSPARENT = sf::Color(255, 255, 255, 128);
 
@@ -26,7 +23,6 @@ bool mouse_left_locked = false;
 
 // tracks the turn pids
 int turn_pid = P1_ID;
-int rolling_frame = 0;
 
 // which player won P1_ID or P2_ID
 int winner = -1;
@@ -97,9 +93,9 @@ inline void
 render_dice(sf::RenderWindow* window,
             std::shared_ptr<struct player_t> active_player,
             std::shared_ptr<struct player_t> opponent,
-            std::shared_ptr<std::vector<struct dice_t>> dice,
-            std::shared_ptr<std::vector<sf::Sprite>> roll_sprites,
-            std::shared_ptr<std::vector<sf::Sprite>> pass_sprites,
+            const std::shared_ptr<std::vector<struct dice_t>>& dice,
+            const std::shared_ptr<std::vector<sf::Sprite>>& roll_sprites,
+            const std::shared_ptr<std::vector<sf::Sprite>>& pass_sprites,
             std::shared_ptr<std::vector<sf::Texture>> textures,
             sf::Sprite* roll_result,
             ur::TimedLatch* animation_timer,

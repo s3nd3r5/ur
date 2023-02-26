@@ -66,7 +66,6 @@ struct board_t
 
 struct player_t
 {
-  int pid;
   int score;
   std::shared_ptr<std::vector<struct piece_t>> pieces;
 };
@@ -82,13 +81,10 @@ std::shared_ptr<std::vector<sf::Texture>>
 loadTextures(const char* path);
 
 std::shared_ptr<std::vector<struct board_t>>
-createBoard(std::shared_ptr<std::vector<sf::Texture>> textures);
-
-sf::Font
-loadFont();
+createBoard(const std::shared_ptr<std::vector<sf::Texture>>& textures);
 
 std::shared_ptr<struct player_t>
-createPlayer(const int pid, sf::Texture& pieceTexture);
+createPlayer(int pid, sf::Texture& pieceTexture);
 
 std::shared_ptr<struct piece_t>
 createPiece(int id, sf::Texture& texture);
@@ -100,32 +96,23 @@ std::shared_ptr<std::vector<sf::Sprite>>
 createRollSprites(sf::Texture& t1, sf::Texture& t2);
 
 std::shared_ptr<std::vector<sf::Sprite>>
-createPassSprites(std::shared_ptr<std::vector<sf::Texture>> textures);
+createPassSprites(const std::shared_ptr<std::vector<sf::Texture>>& textures);
 
 std::shared_ptr<std::vector<sf::Sprite>>
 createWinSprites(int player_id,
-                 std::shared_ptr<std::vector<sf::Texture>> textures);
+                 const std::shared_ptr<std::vector<sf::Texture>>& textures);
 
 std::shared_ptr<std::vector<sf::Sprite>>
-createStartSprites(std::shared_ptr<std::vector<sf::Texture>> textures);
+createStartSprites(const std::shared_ptr<std::vector<sf::Texture>>& textures);
 
 void
 makeNum(sf::Sprite* sprite_ptr,
         int num,
-        std::shared_ptr<std::vector<sf::Texture>> textures);
+        const std::shared_ptr<std::vector<sf::Texture>>& textures);
 
 bool
-clickedPiece(sf::Vector2i mousePosition, std::shared_ptr<struct piece_t> piece);
-
-bool
-canMovePiece(std::shared_ptr<struct piece_t> piece,
-             int roll,
-             std::shared_ptr<std::vector<struct piece_t>> myPieces,
-             std::shared_ptr<std::vector<struct piece_t>> enemyPieces);
-
-bool
-hasMoves(std::shared_ptr<struct player_t> activePlayer,
-         std::shared_ptr<struct player_t> opponent,
+hasMoves(const std::shared_ptr<struct player_t>& activePlayer,
+         const std::shared_ptr<struct player_t>& opponent,
          int roll);
 
 sf::Vector2f
@@ -134,9 +121,9 @@ pos(float c, float r);
 bool
 canPlace(struct piece_t* piece,
          int turn_pid,
-         struct board_t board_tile,
-         std::shared_ptr<std::vector<struct piece_t>> myPieces,
-         std::shared_ptr<std::vector<struct piece_t>> opponentPieces,
+         const struct board_t& board_tile,
+         const std::shared_ptr<std::vector<struct piece_t>>& myPieces,
+         const std::shared_ptr<std::vector<struct piece_t>>& opponentPieces,
          int& takenPieceId);
 
 void

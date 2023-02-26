@@ -44,47 +44,56 @@ str(GameState gs)
       return "Unknown state: " + std::to_string(gs);
   }
 }
+
 // END UR SPECIFIC CODE
 std::string
 str(int i)
 {
   return std::to_string(i);
 }
+
 std::string
 str(long i)
 {
   return std::to_string(i);
 }
+
 std::string
 str(long long i)
 {
   return std::to_string(i);
 }
+
 std::string
 str(unsigned i)
 {
   return std::to_string(i);
 }
+
 std::string
 str(unsigned long i)
 {
   return std::to_string(i);
 }
+
 std::string
 str(unsigned long long i)
 {
   return std::to_string(i);
 }
+
 std::string
 str(float i)
 {
   return std::to_string(i);
 }
+
 std::string
 str(double i)
 {
   return std::to_string(i);
 }
+
 std::string
 str(long double i)
 {
@@ -127,51 +136,61 @@ debug()
 {
   log_d("");
 }
+
 void
 debug(int msg)
 {
   log_d(str(msg));
 }
+
 void
 debug(long msg)
 {
   log_d(str(msg));
 }
+
 void
 debug(long long msg)
 {
   log_d(str(msg));
 }
+
 void
 debug(unsigned msg)
 {
   log_d(str(msg));
 }
+
 void
 debug(unsigned long msg)
 {
   log_d(str(msg));
 }
+
 void
 debug(unsigned long long msg)
 {
   log_d(str(msg));
 }
+
 void
 debug(float msg)
 {
   log_d(str(msg));
 }
+
 void
 debug(double msg)
 {
   log_d(str(msg));
 }
+
 void
 debug(long double msg)
 {
   log_d(str(msg));
 }
+
 void
 debug(std::string msg)
 {
@@ -184,51 +203,61 @@ info()
 {
   log("", L_INFO);
 }
+
 void
 info(int msg)
 {
   log(str(msg), L_INFO);
 }
+
 void
 info(long msg)
 {
   log(str(msg), L_INFO);
 }
+
 void
 info(long long msg)
 {
   log(str(msg), L_INFO);
 }
+
 void
 info(unsigned msg)
 {
   log(str(msg), L_INFO);
 }
+
 void
 info(unsigned long msg)
 {
   log(str(msg), L_INFO);
 }
+
 void
 info(unsigned long long msg)
 {
   log(str(msg), L_INFO);
 }
+
 void
 info(float msg)
 {
   log(str(msg), L_INFO);
 }
+
 void
 info(double msg)
 {
   log(str(msg), L_INFO);
 }
+
 void
 info(long double msg)
 {
   log(str(msg), L_INFO);
 }
+
 void
 info(std::string msg)
 {
@@ -241,51 +270,61 @@ warn()
 {
   log("", L_WARN);
 }
+
 void
 warn(int msg)
 {
   log(str(msg), L_WARN);
 }
+
 void
 warn(long msg)
 {
   log(str(msg), L_WARN);
 }
+
 void
 warn(long long msg)
 {
   log(str(msg), L_WARN);
 }
+
 void
 warn(unsigned msg)
 {
   log(str(msg), L_WARN);
 }
+
 void
 warn(unsigned long msg)
 {
   log(str(msg), L_WARN);
 }
+
 void
 warn(unsigned long long msg)
 {
   log(str(msg), L_WARN);
 }
+
 void
 warn(float msg)
 {
   log(str(msg), L_WARN);
 }
+
 void
 warn(double msg)
 {
   log(str(msg), L_WARN);
 }
+
 void
 warn(long double msg)
 {
   log(str(msg), L_WARN);
 }
+
 void
 warn(std::string msg)
 {
@@ -298,51 +337,61 @@ error()
 {
   log("", L_ERROR);
 }
+
 void
 error(int msg)
 {
   log(str(msg), L_ERROR);
 }
+
 void
 error(long msg)
 {
   log(str(msg), L_ERROR);
 }
+
 void
 error(long long msg)
 {
   log(str(msg), L_ERROR);
 }
+
 void
 error(unsigned msg)
 {
   log(str(msg), L_ERROR);
 }
+
 void
 error(unsigned long msg)
 {
   log(str(msg), L_ERROR);
 }
+
 void
 error(unsigned long long msg)
 {
   log(str(msg), L_ERROR);
 }
+
 void
 error(float msg)
 {
   log(str(msg), L_ERROR);
 }
+
 void
 error(double msg)
 {
   log(str(msg), L_ERROR);
 }
+
 void
 error(long double msg)
 {
   log(str(msg), L_ERROR);
 }
+
 void
 error(std::string msg)
 {

@@ -37,7 +37,7 @@ next(int* p, int max)
 }
 
 std::shared_ptr<std::vector<struct board_t>>
-createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
+createBoard(const std::shared_ptr<std::vector<sf::Texture>>& textures)
 {
   auto board = std::make_shared<std::vector<struct board_t>>();
   sf::Texture& star_texture = (*textures)[STAR_TILE];
@@ -146,17 +146,6 @@ createBoard(std::shared_ptr<std::vector<sf::Texture>> textures)
   return board;
 }
 
-sf::Font
-loadFont()
-{
-  sf::Font font;
-  if (!font.loadFromFile("./res/DejaVuSansMono.ttf")) {
-    std::cerr << "Unable to load font" << std::endl;
-    throw std::runtime_error("Unable to load font");
-  }
-  return font;
-}
-
 std::shared_ptr<struct piece_t>
 createPiece(int id, sf::Texture& texture)
 {
@@ -171,10 +160,9 @@ createPiece(int id, sf::Texture& texture)
 }
 
 std::shared_ptr<struct player_t>
-createPlayer(const int pid, sf::Texture& texture)
+createPlayer(int pid, sf::Texture& texture)
 {
   std::shared_ptr<struct player_t> player = std::make_shared<struct player_t>();
-  player->pid = pid;
   player->score = 0;
   player->pieces = std::make_shared<std::vector<struct piece_t>>();
   for (int i = 0; i < NUM_PIECES; i++) {
@@ -229,19 +217,19 @@ createRollSprites(sf::Texture& t1, sf::Texture& t2)
 }
 
 std::shared_ptr<std::vector<sf::Sprite>>
-createPassSprites(std::shared_ptr<std::vector<sf::Texture>> textures)
+createPassSprites(const std::shared_ptr<std::vector<sf::Texture>>& textures)
 {
   auto sprites = std::make_shared<std::vector<sf::Sprite>>();
 
-  for (int i = 0; i < 3; i++) {
-    sprites->push_back(sf::Sprite((*textures)[PASS_TILES[i]]));
+  for (int i : PASS_TILES) {
+    sprites->push_back(sf::Sprite((*textures)[i]));
   }
   return sprites;
 }
 
 std::shared_ptr<std::vector<sf::Sprite>>
 createWinSprites(int player_id,
-                 std::shared_ptr<std::vector<sf::Texture>> textures)
+                 const std::shared_ptr<std::vector<sf::Texture>>& textures)
 {
   auto sprites = std::make_shared<std::vector<sf::Sprite>>();
   auto tile_ids = player_id == P1_ID ? P1_WIN_TILES : P2_WIN_TILES;
@@ -256,12 +244,12 @@ createWinSprites(int player_id,
 }
 
 std::shared_ptr<std::vector<sf::Sprite>>
-createStartSprites(std::shared_ptr<std::vector<sf::Texture>> textures)
+createStartSprites(const std::shared_ptr<std::vector<sf::Texture>>& textures)
 {
   auto sprites = std::make_shared<std::vector<sf::Sprite>>();
 
-  for (int i = 0; i < 3; i++) {
-    sprites->push_back(sf::Sprite((*textures)[START_TILES[i]]));
+  for (int i : START_TILES) {
+    sprites->push_back(sf::Sprite((*textures)[i]));
   }
   return sprites;
 }
@@ -269,50 +257,11 @@ createStartSprites(std::shared_ptr<std::vector<sf::Texture>> textures)
 void
 makeNum(sf::Sprite* sprite_ptr,
         int num,
-        std::shared_ptr<std::vector<sf::Texture>> textures)
+        const std::shared_ptr<std::vector<sf::Texture>>& textures)
 {
   sf::Texture& t = (*textures)[NUMS_TILES[num]];
   sprite_ptr->setTexture(t);
 };
-
-bool
-clickedPiece(sf::Vector2i mousePosition, struct piece_t* piece)
-{
-  return piece->sprite.getGlobalBounds().contains(mousePosition.x,
-                                                  mousePosition.y);
-}
-
-bool
-canMovePiece(struct piece_t* piece,
-             int roll,
-             std::shared_ptr<std::vector<struct piece_t>> myPieces,
-             std::shared_ptr<std::vector<struct piece_t>> enemyPieces)
-{
-  int next = piece->position + roll;
-
-  // rolled passed the exit
-  if (next > EXIT_SPACE) {
-    return false;
-  }
-
-  // colliding with another piece
-  for (struct piece_t& p : (*myPieces)) {
-    // cannot move onto your own piece
-    if (p.id != piece->id && p.position == next) {
-      return false;
-    }
-  }
-
-  // can't attack in safe square
-  for (struct piece_t& p : (*enemyPieces)) {
-    // cannot move onto a protected enemy piece
-    if (next == SAFE_SPACE && p.position == SAFE_SPACE) {
-      return false;
-    }
-  }
-
-  return true;
-}
 
 // This function takes in an row and col we want to put the sprite in
 // and translate it to a real position in the view
@@ -326,9 +275,9 @@ pos(float c, float r)
 bool
 canPlace(struct piece_t* piece,
          int turn_pid,
-         struct board_t board_tile,
-         std::shared_ptr<std::vector<struct piece_t>> myPieces,
-         std::shared_ptr<std::vector<struct piece_t>> opponentPieces,
+         const struct board_t& board_tile,
+         const std::shared_ptr<std::vector<struct piece_t>>& myPieces,
+         const std::shared_ptr<std::vector<struct piece_t>>& opponentPieces,
          int& takenPieceId)
 {
   if (board_tile.pid != turn_pid && board_tile.pid != SHARED_ID)
@@ -366,39 +315,39 @@ canPlace(struct piece_t* piece,
  * this is for the purpose of passing if no legal move available
  */
 bool
-hasMoves(std::shared_ptr<struct player_t> activePlayer,
-         std::shared_ptr<struct player_t> opponent,
+hasMoves(const std::shared_ptr<struct player_t>& activePlayer,
+         const std::shared_ptr<struct player_t>& opponent,
          int roll)
 {
   int occupied_spaces[14] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
+  // Populate player pieces
   for (auto& p : (*activePlayer->pieces)) {
     if (p.position < 0)
       continue; // not on board
     int target = p.position + roll;
-    if (target == EXIT_SPACE)
+    if (target == EXIT_SPACE) {
       return true; // can always land in the exit skip rest of the function
+    }
     occupied_spaces[p.position]++;
   }
 
+  // Only populate safe space
   for (auto& op : (*opponent->pieces)) {
     if (op.position == SAFE_SPACE) {
       occupied_spaces[SAFE_SPACE]++;
-      break;
+      break; // only 1 piece can be in the safe space
     }
   }
 
-  for (auto& p : (*activePlayer->pieces)) {
-    int target = p.position + roll;
-    if (target > EXIT_SPACE) {
-      continue; // off the board
-    } else if (target == EXIT_SPACE) {
-      return true; // can always land in the exit
-    } else if (occupied_spaces[target] == 0) {
-      return true; // has a free space
-    }
-  }
-  return false;
+  // find if any moves available
+  return std::ranges::any_of(activePlayer->pieces->begin(),
+                             activePlayer->pieces->end(),
+                             [&occupied_spaces, &roll](const piece_t& p) {
+                               int target = p.position + roll;
+                               return target == EXIT_SPACE ||
+                                      occupied_spaces[target] == 0;
+                             });
 }
 
 void
